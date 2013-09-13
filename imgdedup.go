@@ -4,17 +4,16 @@ import (
 	"flag"
 	"fmt"
 	"image"
-	"math"
-	// "image/color"
+	"image/jpeg"
 	"image/png"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
-	// "strings"
-	// "strconv"
 )
 
 var subdivisions *int
+var cutoff *int
 
 func pictable(dx int, dy int) [][][]uint64 {
 	pic := make([][][]uint64, dx) /* type declaration */
@@ -27,8 +26,13 @@ func pictable(dx int, dy int) [][][]uint64 {
 	return pic
 }
 
+func absdiff(a uint64, b uint64) uint64 {
+	return uint64(math.Abs(float64(a) - float64(b)))
+}
+
 func init() {
 	subdivisions = flag.Int("subdivisions", 10, "Number of times per axis to slice image")
+	cutoff = flag.Int("cutoff", 100, "Cutoff to declare similar")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
@@ -38,27 +42,40 @@ func init() {
 	}
 
 	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
+	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
 }
 
 func main() {
-
-	fmt.Println(flag.NArg())
-
 	// var imgdata [][][][]uint64
 	imgdata := make(map[string][][][]uint64)
 
 	for _, imgpath := range flag.Args() {
 
+		// var theFiles []os.FileInfo
+		file, err := os.Open(imgpath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fi, err := file.Stat()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		switch mode := fi.Mode(); {
+		case mode.IsDir():
+			// do directory stuff
+			fmt.Println("directory")
+		case mode.IsRegular():
+			// do file stuff
+			fmt.Println("file")
+		}
+
 		// imgpath, _ = filepath.Abs(imgpath)
 
-		if filepath.Ext(imgpath) == ".png" {
+		if filepath.Ext(imgpath) == ".png" || filepath.Ext(imgpath) == ".jpg" || filepath.Ext(imgpath) == ".jpeg" {
 			// fmt.Println(filepath.Ext(imgpath))
-			fmt.Println(imgpath)
-
-			file, err := os.Open(imgpath)
-			if err != nil {
-				log.Fatal(err)
-			}
+			// fmt.Println(imgpath)
 
 			m, _, err := image.Decode(file)
 			if err != nil {
@@ -90,17 +107,38 @@ func main() {
 				}
 			}
 
-			// fmt.Printf("%v", avgdata)
-			//
-			// imgdata = append( imgdata, avgdata )
-
 			imgdata[imgpath] = avgdata
+
+			file.Close()
 
 		} else {
 			fmt.Println(filepath.Ext(imgpath), "Not Supported")
 		}
 	}
 
-	fmt.Printf("%v", imgdata)
+	for filename1, avgdata1 := range imgdata {
+		for filename2, avgdata2 := range imgdata {
+			if filename1 == filename2 {
+				continue
+			}
+
+			var xdiff uint64 = 0
+
+			for rX := 0; rX < *subdivisions; rX++ {
+				for rY := 0; rY < *subdivisions; rY++ {
+					aa := avgdata1[rX][rY]
+					bb := avgdata2[rX][rY]
+
+					xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
+				}
+			}
+
+			if xdiff < uint64(*cutoff) {
+				fmt.Println(filename1, filename2)
+				fmt.Println(xdiff)
+			}
+
+		}
+	}
 
 }
