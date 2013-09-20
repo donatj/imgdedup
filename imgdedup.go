@@ -45,13 +45,11 @@ func init() {
 	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
 }
 
-func main() {
-	// var imgdata [][][][]uint64
-	imgdata := make(map[string][][][]uint64)
+func getFiles(paths []string) []string {
+	var theFiles []string
 
-	for _, imgpath := range flag.Args() {
+	for _, imgpath := range paths {
 
-		// var theFiles []os.FileInfo
 		file, err := os.Open(imgpath)
 		if err != nil {
 			log.Fatal(err)
@@ -64,18 +62,43 @@ func main() {
 
 		switch mode := fi.Mode(); {
 		case mode.IsDir():
-			// do directory stuff
-			fmt.Println("directory")
+			// fmt.Println("directory")
+			filepath.Walk(imgpath, func(path string, f os.FileInfo, err error) error {
+
+				submode := f.Mode()
+				if submode.IsRegular() {
+					theFiles = append(theFiles, path)
+				}
+
+				return nil
+			})
 		case mode.IsRegular():
-			// do file stuff
-			fmt.Println("file")
+			// fmt.Println("file")
+			theFiles = append(theFiles, imgpath)
 		}
 
+		file.Close()
+
+	}
+
+	return theFiles
+}
+
+func main() {
+	// var imgdata [][][][]uint64
+	imgdata := make(map[string][][][]uint64)
+
+	theFiles := getFiles(flag.Args())
+
+	for _, imgpath := range theFiles {
+
+		file, err := os.Open(imgpath)
+		if err != nil {
+			log.Fatal(err)
+		}
 		// imgpath, _ = filepath.Abs(imgpath)
 
 		if filepath.Ext(imgpath) == ".png" || filepath.Ext(imgpath) == ".jpg" || filepath.Ext(imgpath) == ".jpeg" {
-			// fmt.Println(filepath.Ext(imgpath))
-			// fmt.Println(imgpath)
 
 			m, _, err := image.Decode(file)
 			if err != nil {
