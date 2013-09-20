@@ -3,6 +3,18 @@ Image De-duplicator
 
 Simple image de-duplication in Go-lang
 
-	usage: imgavg [dir]
-	  -cutoff=100: Cutoff to declare similar
-	  -subdivisions=10: Number of times per axis to slice image
+	usage: imgdedup [options] [<directories>/files]
+	  -subdivisions=10: Slices per axis
+	  -tolerance=100: Color delta tolerance, higher = more tolerant
+
+## Features
+
+Detects duplications despite changes in
+
+- size
+- quality
+- aspect ratio
+
+## Download
+
+	go get github.com/donatj/imgdedup
