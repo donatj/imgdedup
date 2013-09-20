@@ -96,7 +96,9 @@ func main() {
 			file.Close()
 
 		} else {
-			fmt.Println(filepath.Ext(imgpath), "Not Supported")
+			fmt.Println(imgpath, filepath.Ext(imgpath), "Not Supported")
+
+			file.Close()
 		}
 	}
 
@@ -162,7 +164,7 @@ func getFiles(paths []string) []string {
 
 				submode := f.Mode()
 				if submode.IsRegular() {
-					fpath, _ := filepath.Abs(imgpath)
+					fpath, _ := filepath.Abs(path)
 					fileList = append(fileList, fpath)
 				}
 
