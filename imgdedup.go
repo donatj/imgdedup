@@ -6,14 +6,16 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
+	"image/gif"
 	"log"
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var subdivisions *int
-var cutoff *int
+var tolerance *int
 
 func pictable(dx int, dy int) [][][]uint64 {
 	pic := make([][][]uint64, dx) /* type declaration */
@@ -31,18 +33,19 @@ func absdiff(a uint64, b uint64) uint64 {
 }
 
 func init() {
-	subdivisions = flag.Int("subdivisions", 10, "Number of times per axis to slice image")
-	cutoff = flag.Int("cutoff", 100, "Cutoff to declare similar")
+	subdivisions = flag.Int("subdivisions", 10, "Slices per axis")
+	tolerance = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
-		fmt.Println("usage: imgavg [dir]")
+		fmt.Println("usage: imgdedup [options] [<directories>/files]")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
 	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
 	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
+	image.RegisterFormat("gif", "gif", gif.Decode, gif.DecodeConfig)
 }
 
 func main() {
@@ -57,13 +60,14 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		// imgpath, _ = filepath.Abs(imgpath)
-
-		if filepath.Ext(imgpath) == ".png" || filepath.Ext(imgpath) == ".jpg" || filepath.Ext(imgpath) == ".jpeg" {
+		
+		fExt := strings.ToLower( filepath.Ext(imgpath) );
+		if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" {
 
 			m, _, err := image.Decode(file)
 			if err != nil {
-				log.Fatal(err)
+				log.Print(imgpath, err)
+				continue
 			}
 			bounds := m.Bounds()
 
@@ -96,7 +100,7 @@ func main() {
 			file.Close()
 
 		} else {
-			fmt.Println(imgpath, filepath.Ext(imgpath), "Not Supported")
+			fmt.Println(imgpath, fExt, "Not Supported")
 
 			file.Close()
 		}
@@ -130,7 +134,7 @@ func main() {
 					}
 				}
 
-				if xdiff < uint64(*cutoff) {
+				if xdiff < uint64(*tolerance) {
 					fmt.Println(filename1, filename2)
 					fmt.Println(xdiff)
 				}
