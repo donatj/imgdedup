@@ -45,52 +45,13 @@ func init() {
 	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
 }
 
-func getFiles(paths []string) []string {
-	var theFiles []string
-
-	for _, imgpath := range paths {
-
-		file, err := os.Open(imgpath)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fi, err := file.Stat()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		switch mode := fi.Mode(); {
-		case mode.IsDir():
-			// fmt.Println("directory")
-			filepath.Walk(imgpath, func(path string, f os.FileInfo, err error) error {
-
-				submode := f.Mode()
-				if submode.IsRegular() {
-					theFiles = append(theFiles, path)
-				}
-
-				return nil
-			})
-		case mode.IsRegular():
-			// fmt.Println("file")
-			theFiles = append(theFiles, imgpath)
-		}
-
-		file.Close()
-
-	}
-
-	return theFiles
-}
-
 func main() {
 	// var imgdata [][][][]uint64
 	imgdata := make(map[string][][][]uint64)
 
-	theFiles := getFiles(flag.Args())
+	fileList := getFiles(flag.Args())
 
-	for _, imgpath := range theFiles {
+	for _, imgpath := range fileList {
 
 		file, err := os.Open(imgpath)
 		if err != nil {
@@ -139,29 +100,83 @@ func main() {
 		}
 	}
 
-	for filename1, avgdata1 := range imgdata {
-		for filename2, avgdata2 := range imgdata {
-			if filename1 == filename2 {
-				continue
-			}
+	fileLength := len(fileList)
 
-			var xdiff uint64 = 0
+	for i := 0; i < fileLength-1; i++ {
+		for j := i + 1; j < fileLength-1; j++ {
 
-			for rX := 0; rX < *subdivisions; rX++ {
-				for rY := 0; rY < *subdivisions; rY++ {
-					aa := avgdata1[rX][rY]
-					bb := avgdata2[rX][rY]
+			filename1 := fileList[i]
+			filename2 := fileList[j]
 
-					xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
+			avgdata1, ok1 := imgdata[filename1]
+			avgdata2, ok2 := imgdata[filename2]
+
+			if ok1 && ok2 {
+
+				if filename1 == filename2 {
+					continue
 				}
-			}
 
-			if xdiff < uint64(*cutoff) {
-				fmt.Println(filename1, filename2)
-				fmt.Println(xdiff)
+				var xdiff uint64 = 0
+
+				for rX := 0; rX < *subdivisions; rX++ {
+					for rY := 0; rY < *subdivisions; rY++ {
+						aa := avgdata1[rX][rY]
+						bb := avgdata2[rX][rY]
+
+						xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
+					}
+				}
+
+				if xdiff < uint64(*cutoff) {
+					fmt.Println(filename1, filename2)
+					fmt.Println(xdiff)
+				}
+
 			}
 
 		}
 	}
 
+}
+
+func getFiles(paths []string) []string {
+	var fileList []string
+
+	for _, imgpath := range paths {
+
+		file, err := os.Open(imgpath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fi, err := file.Stat()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		switch mode := fi.Mode(); {
+		case mode.IsDir():
+			// fmt.Println("directory")
+			filepath.Walk(imgpath, func(path string, f os.FileInfo, err error) error {
+
+				submode := f.Mode()
+				if submode.IsRegular() {
+					fpath, _ := filepath.Abs(imgpath)
+					fileList = append(fileList, fpath)
+				}
+
+				return nil
+			})
+		case mode.IsRegular():
+			// fmt.Println("file")
+			fpath, _ := filepath.Abs(imgpath)
+			fileList = append(fileList, fpath)
+		}
+
+		file.Close()
+
+	}
+
+	return fileList
 }
