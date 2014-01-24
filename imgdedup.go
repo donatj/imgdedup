@@ -1,15 +1,22 @@
 package main
 
 import (
+	"bufio"
+	"crypto/md5"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/cheggaaa/pb"
 	"image"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
-	"image/gif"
+	"io"
 	"log"
 	"math"
 	"os"
+	"os/user"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -17,7 +24,11 @@ import (
 var subdivisions *int
 var tolerance *int
 
-func pictable(dx int, dy int) [][][]uint64 {
+var scratchDir string
+
+type pictable [][][]uint64
+
+func MkPictable(dx int, dy int) pictable {
 	pic := make([][][]uint64, dx) /* type declaration */
 	for i := range pic {
 		pic[i] = make([][]uint64, dy) /* again the type? */
@@ -48,51 +59,128 @@ func init() {
 	image.RegisterFormat("gif", "gif", gif.Decode, gif.DecodeConfig)
 }
 
+func init() {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+	scratchDir = path.Join(usr.HomeDir, ".imgdedup")
+
+	if _, err := os.Stat(scratchDir); err != nil {
+		if os.IsNotExist(err) {
+			os.Mkdir(scratchDir, 0700)
+		} else {
+			log.Fatal(err)
+		}
+	}
+}
+
+func scanImg(file *os.File) (pictable, error) {
+	m, _, err := image.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+	bounds := m.Bounds()
+
+	avgdata := MkPictable(*subdivisions, *subdivisions)
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			rX := int64(math.Floor((float64(x) / float64(bounds.Max.X)) * float64(*subdivisions)))
+			rY := int64(math.Floor((float64(y) / float64(bounds.Max.Y)) * float64(*subdivisions)))
+
+			r, g, b, _ := m.At(x, y).RGBA()
+			avgdata[rX][rY][0] += uint64((float32(r) / 65535) * 255)
+			avgdata[rX][rY][1] += uint64((float32(g) / 65535) * 255)
+			avgdata[rX][rY][2] += uint64((float32(b) / 65535) * 255)
+		}
+	}
+
+	divisor := uint64((bounds.Max.X / *subdivisions) * (bounds.Max.Y / *subdivisions))
+
+	for rX := 0; rX < *subdivisions; rX++ {
+		for rY := 0; rY < *subdivisions; rY++ {
+			avgdata[rX][rY][0] = avgdata[rX][rY][0] / divisor
+			avgdata[rX][rY][1] = avgdata[rX][rY][1] / divisor
+			avgdata[rX][rY][2] = avgdata[rX][rY][2] / divisor
+		}
+	}
+
+	return avgdata, nil
+}
+
+func loadCache(cachename string) (pictable, error) {
+
+	file, err := os.Open(cachename)
+	if err != nil {
+		return nil, err
+	}
+	r := bufio.NewReader(file)
+
+	var avgdata pictable
+
+	dec := json.NewDecoder(r)
+
+	err = dec.Decode(&avgdata)
+	if err != nil {
+		return nil, err
+	}
+
+	return avgdata, nil
+}
+
+func storeCache(cachename string, avgdata *pictable) {
+	fo, err := os.Create(cachename)
+	if err != nil {
+		panic(err)
+	}
+
+	enc := json.NewEncoder(fo)
+	enc.Encode(avgdata)
+	fo.Close()
+}
+
 func main() {
 	// var imgdata [][][][]uint64
 	imgdata := make(map[string][][][]uint64)
 
 	fileList := getFiles(flag.Args())
 
+	bar := pb.StartNew(len(fileList))
+
 	for _, imgpath := range fileList {
+
+		bar.Increment()
 
 		file, err := os.Open(imgpath)
 		if err != nil {
 			log.Fatal(err)
 		}
-		
-		fExt := strings.ToLower( filepath.Ext(imgpath) );
+
+		fExt := strings.ToLower(filepath.Ext(imgpath))
 		if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" {
 
-			m, _, err := image.Decode(file)
+			fi, err := file.Stat()
 			if err != nil {
-				log.Print(imgpath, err)
-				continue
-			}
-			bounds := m.Bounds()
-
-			avgdata := pictable(*subdivisions, *subdivisions)
-
-			for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-				for x := bounds.Min.X; x < bounds.Max.X; x++ {
-					rX := int64(math.Floor((float64(x) / float64(bounds.Max.X)) * float64(*subdivisions)))
-					rY := int64(math.Floor((float64(y) / float64(bounds.Max.Y)) * float64(*subdivisions)))
-
-					r, g, b, _ := m.At(x, y).RGBA()
-					avgdata[rX][rY][0] += uint64((float32(r) / 65535) * 255)
-					avgdata[rX][rY][1] += uint64((float32(g) / 65535) * 255)
-					avgdata[rX][rY][2] += uint64((float32(b) / 65535) * 255)
-				}
+				log.Fatal(err)
 			}
 
-			divisor := uint64((bounds.Max.X / *subdivisions) * (bounds.Max.Y / *subdivisions))
+			h := md5.New()
+			io.WriteString(h, imgpath+"|"+string(*subdivisions)+"|"+string(fi.Size())+string(fi.ModTime().UnixNano()))
+			cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
 
-			for rX := 0; rX < *subdivisions; rX++ {
-				for rY := 0; rY < *subdivisions; rY++ {
-					avgdata[rX][rY][0] = avgdata[rX][rY][0] / divisor
-					avgdata[rX][rY][1] = avgdata[rX][rY][1] / divisor
-					avgdata[rX][rY][2] = avgdata[rX][rY][2] / divisor
+			var avgdata pictable
+
+			avgdata, err = loadCache(cachename)
+			if err != nil {
+
+				avgdata, err = scanImg(file)
+				if err != nil {
+					log.Print(imgpath, err)
+					continue
 				}
+
+				storeCache(cachename, &avgdata)
 			}
 
 			imgdata[imgpath] = avgdata
@@ -100,8 +188,6 @@ func main() {
 			file.Close()
 
 		} else {
-			fmt.Println(imgpath, fExt, "Not Supported")
-
 			file.Close()
 		}
 	}
