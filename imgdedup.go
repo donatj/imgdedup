@@ -167,7 +167,7 @@ func main() {
 			}
 
 			h := md5.New()
-			io.WriteString(h, imgpath+"|"+string(*subdivisions)+"|"+string(fi.Size())+string(fi.ModTime().UnixNano()))
+			io.WriteString(h, imgpath+"|"+string(*subdivisions)+"|"+string(fi.Size())+string(fi.ModTime().Unix()))
 			cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
 
 			var avgdata pictable
