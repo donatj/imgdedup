@@ -141,8 +141,8 @@ func storeCache(cachename string, avgdata *pictable) {
 }
 
 func main() {
-	// var imgdata [][][][]uint64
-	imgdata := make(map[string][][][]uint64)
+	
+	imgdata := make(map[string]pictable)
 
 	fileList := getFiles(flag.Args())
 
