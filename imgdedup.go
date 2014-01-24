@@ -18,7 +18,9 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"strconv"
 )
 
 var subdivisions *int
@@ -27,6 +29,11 @@ var tolerance *int
 var scratchDir string
 
 type pictable [][][]uint64
+
+type filePict struct {
+	name string
+	data pictable
+}
 
 func MkPictable(dx int, dy int) pictable {
 	pic := make([][][]uint64, dx) /* type declaration */
@@ -112,6 +119,7 @@ func scanImg(file *os.File) (pictable, error) {
 func loadCache(cachename string) (pictable, error) {
 
 	file, err := os.Open(cachename)
+	defer file.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -131,66 +139,106 @@ func loadCache(cachename string) (pictable, error) {
 
 func storeCache(cachename string, avgdata *pictable) {
 	fo, err := os.Create(cachename)
+	defer fo.Close()
 	if err != nil {
 		panic(err)
 	}
 
 	enc := json.NewEncoder(fo)
 	enc.Encode(avgdata)
-	fo.Close()
 }
 
 func main() {
-	
+
 	imgdata := make(map[string]pictable)
 
 	fileList := getFiles(flag.Args())
 
-	bar := pb.StartNew(len(fileList))
+	N := len(fileList)
+
+	bar := pb.StartNew(N)
+	// fmt.Println( "Cores: " + string(MaxParallelism()) )
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	sem := make(chan *filePict, N)
+
+	X := 0
 
 	for _, imgpath := range fileList {
 
-		bar.Increment()
+		X++
 
-		file, err := os.Open(imgpath)
-		if err != nil {
-			log.Fatal(err)
-		}
+		go func() {
 
-		fExt := strings.ToLower(filepath.Ext(imgpath))
-		if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" {
-
-			fi, err := file.Stat()
+			file, err := os.Open(imgpath)
+			defer file.Close()
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			h := md5.New()
-			io.WriteString(h, imgpath+"|"+string(*subdivisions)+"|"+string(fi.Size())+string(fi.ModTime().UnixNano()))
-			cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
+			fExt := strings.ToLower(filepath.Ext(imgpath))
+			if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" {
 
-			var avgdata pictable
-
-			avgdata, err = loadCache(cachename)
-			if err != nil {
-
-				avgdata, err = scanImg(file)
+				fi, err := file.Stat()
 				if err != nil {
-					log.Print(imgpath, err)
-					continue
+					log.Fatal(err)
 				}
 
-				storeCache(cachename, &avgdata)
+				h := md5.New()
+				io.WriteString(h, imgpath+"|"+string(*subdivisions)+"|"+string(fi.Size())+string(fi.ModTime().UnixNano()))
+				cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
+
+				var avgdata pictable
+
+				avgdata, err = loadCache(cachename)
+				if err != nil {
+
+					avgdata, err = scanImg(file)
+					if err != nil {
+						log.Print(imgpath, err)
+						bar.Increment()
+						sem <- nil
+						return
+					}
+
+					storeCache(cachename, &avgdata)
+				}
+
+				bar.Increment()
+				sem <- &filePict{imgpath, avgdata}
+				return
+
 			}
 
-			imgdata[imgpath] = avgdata
+			bar.Increment()
+			sem <- nil
+			return
 
-			file.Close()
+		}()
 
-		} else {
-			file.Close()
+		if math.Mod( float64(X), 8) == 0 {
+			fmt.Println( math.Mod( float64(X), 8), X )
+			for i := 0; i < X; i++ {
+				X--
+				fp := <-sem
+				if fp != nil {
+					imgdata[fp.name] = fp.data
+				}
+			}
+
+		
 		}
 	}
+
+	fmt.Println(X)	
+	for i := 0; i < X; i++ {
+		fp := <-sem
+		if fp != nil {
+			imgdata[fp.name] = fp.data
+		}
+	}
+
+	fmt.Println("Length: " + strconv.Itoa(len(imgdata)) + ".");
 
 	fileLength := len(fileList)
 
