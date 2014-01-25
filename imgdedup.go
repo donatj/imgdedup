@@ -167,7 +167,10 @@ func main() {
 			}
 
 			h := md5.New()
-			io.WriteString(h, imgpath+"|"+string(*subdivisions)+"|"+string(fi.Size())+string(fi.ModTime().Unix()))
+
+			cacheUnit := imgpath+"|"+string(*subdivisions)+"|"+string(fi.Size())+string(fi.ModTime().Unix());
+
+			io.WriteString(h, cacheUnit)
 			cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
 
 			var avgdata pictable
@@ -192,6 +195,8 @@ func main() {
 			file.Close()
 		}
 	}
+
+	bar.Finish()
 
 	fileLength := len(fileList)
 
