@@ -97,6 +97,9 @@ func scanImg(file *os.File) (pictable, error) {
 	}
 
 	divisor := uint64((bounds.Max.X / *subdivisions) * (bounds.Max.Y / *subdivisions))
+	if divisor == 0 {
+		return nil, fmt.Errorf("Image dimensions %d x %d invalid", bounds.Max.X, bounds.Max.Y)
+	}
 
 	for rX := 0; rX < *subdivisions; rX++ {
 		for rY := 0; rY < *subdivisions; rY++ {
@@ -142,7 +145,7 @@ func storeCache(cachename string, avgdata *pictable) {
 }
 
 func main() {
-	
+
 	imgdata := make(map[string]pictable)
 
 	fileList := getFiles(flag.Args())
@@ -168,7 +171,7 @@ func main() {
 
 			h := md5.New()
 
-			cacheUnit := imgpath+"|"+string(*subdivisions)+"|"+string(fi.Size())+string(fi.ModTime().Unix());
+			cacheUnit := imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
 
 			io.WriteString(h, cacheUnit)
 			cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
