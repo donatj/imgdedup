@@ -183,7 +183,7 @@ func main() {
 
 				avgdata, err = scanImg(file)
 				if err != nil {
-					log.Print(imgpath, err)
+					log.Print(imgpath, " - ", err)
 					continue
 				}
 
