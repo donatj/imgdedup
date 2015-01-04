@@ -6,7 +6,6 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
-	"log"
 	"math"
 	"os"
 )
@@ -72,7 +71,7 @@ func scanImg(file *os.File) (*imageInfo, error) {
 
 	fi, err := file.Stat()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return &imageInfo{Data: avgdata, Bounds: bounds, Filesize: fi.Size()}, nil
