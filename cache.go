@@ -6,8 +6,7 @@ import (
 	"os"
 )
 
-func loadCache(cachename string) (pictable, error) {
-
+func loadCache(cachename string) (*imageInfo, error) {
 	file, err := os.Open(cachename)
 	defer file.Close()
 	if err != nil {
@@ -15,25 +14,28 @@ func loadCache(cachename string) (pictable, error) {
 	}
 	r := bufio.NewReader(file)
 
-	var avgdata pictable
-
 	dec := json.NewDecoder(r)
 
-	err = dec.Decode(&avgdata)
+	var imginfo imageInfo
+	err = dec.Decode(&imginfo)
 	if err != nil {
 		return nil, err
 	}
 
-	return avgdata, nil
+	return &imginfo, nil
 }
 
-func storeCache(cachename string, avgdata *pictable) {
+func storeCache(cachename string, imginfo *imageInfo) {
 	fo, err := os.Create(cachename)
+	if err != nil {
+		panic(err)
+	}
 	defer fo.Close()
+	enc := json.NewEncoder(fo)
+
+	err = enc.Encode(imginfo)
 	if err != nil {
 		panic(err)
 	}
 
-	enc := json.NewEncoder(fo)
-	enc.Encode(avgdata)
 }

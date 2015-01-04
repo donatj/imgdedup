@@ -26,6 +26,12 @@ var scratchDir string
 
 type pictable [][][]uint64
 
+type imageInfo struct {
+	Data     pictable
+	Bounds   image.Rectangle
+	Filesize int64
+}
+
 func MkPictable(dx int, dy int) pictable {
 	pic := make([][][]uint64, dx) /* type declaration */
 	for i := range pic {
@@ -73,7 +79,7 @@ func init() {
 	}
 }
 
-func scanImg(file *os.File) (pictable, error) {
+func scanImg(file *os.File) (*imageInfo, error) {
 	m, _, err := image.Decode(file)
 	if err != nil {
 		return nil, err
@@ -107,19 +113,24 @@ func scanImg(file *os.File) (pictable, error) {
 		}
 	}
 
-	return avgdata, nil
+	fi, err := file.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &imageInfo{Data: avgdata, Bounds: bounds, Filesize: fi.Size()}, nil
 }
 
 func main() {
 
-	imgdata := make(map[string]pictable)
+	imgdata := make(map[string]*imageInfo)
 
 	fileList := getFiles(flag.Args())
 
 	bar := pb.StartNew(len(fileList))
+	bar.Output = os.Stderr
 
 	for _, imgpath := range fileList {
-
 		bar.Increment()
 
 		file, err := os.Open(imgpath)
@@ -142,21 +153,22 @@ func main() {
 			io.WriteString(h, cacheUnit)
 			cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
 
-			var avgdata pictable
+			var imginfo *imageInfo
 
-			avgdata, err = loadCache(cachename)
+			imginfo, err = loadCache(cachename)
+
 			if err != nil {
 
-				avgdata, err = scanImg(file)
+				imginfo, err = scanImg(file)
 				if err != nil {
 					log.Print(imgpath, " - ", err)
 					continue
 				}
 
-				storeCache(cachename, &avgdata)
+				storeCache(cachename, imginfo)
 			}
 
-			imgdata[imgpath] = avgdata
+			imgdata[imgpath] = imginfo
 
 			file.Close()
 
@@ -165,7 +177,7 @@ func main() {
 		}
 	}
 
-	bar.Finish()
+	//bar.Finish()
 
 	fileLength := len(fileList)
 
@@ -175,10 +187,13 @@ func main() {
 			filename1 := fileList[i]
 			filename2 := fileList[j]
 
-			avgdata1, ok1 := imgdata[filename1]
-			avgdata2, ok2 := imgdata[filename2]
+			imgdata1, ok1 := imgdata[filename1]
+			imgdata2, ok2 := imgdata[filename2]
 
 			if ok1 && ok2 {
+
+				avgdata1 := imgdata1.Data
+				avgdata2 := imgdata2.Data
 
 				if filename1 == filename2 {
 					continue
