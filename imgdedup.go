@@ -19,9 +19,6 @@ import (
 	"strings"
 )
 
-var subdivisions *int
-var tolerance *int
-
 var scratchDir string
 
 type pictable [][][]uint64
@@ -47,9 +44,13 @@ func absdiff(a uint64, b uint64) uint64 {
 	return uint64(math.Abs(float64(a) - float64(b)))
 }
 
+var (
+	subdivisions *int = flag.Int("subdivisions", 10, "Slices per axis")
+	tolerance    *int = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
+)
+
 func init() {
-	subdivisions = flag.Int("subdivisions", 10, "Slices per axis")
-	tolerance = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
+
 	flag.Parse()
 
 	if flag.NArg() < 1 {
