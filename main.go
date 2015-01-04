@@ -80,9 +80,7 @@ func main() {
 			io.WriteString(h, cacheUnit)
 			cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
 
-			var imginfo *imageInfo
-
-			imginfo, err = loadCache(cachename)
+			imginfo, err := loadCache(cachename)
 
 			if err != nil {
 
