@@ -177,7 +177,7 @@ func main() {
 		}
 	}
 
-	//bar.Finish()
+	bar.Finish()
 
 	fileLength := len(fileList)
 
