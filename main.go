@@ -164,7 +164,7 @@ func getFiles(paths []string) []string {
 
 		switch mode := fi.Mode(); {
 		case mode.IsDir():
-			// fmt.Println("directory")
+			// Walk is recursive
 			filepath.Walk(imgpath, func(path string, f os.FileInfo, err error) error {
 
 				submode := f.Mode()
@@ -182,7 +182,6 @@ func getFiles(paths []string) []string {
 				return nil
 			})
 		case mode.IsRegular():
-			// fmt.Println("file")
 			fpath, _ := filepath.Abs(imgpath)
 			fileList = append(fileList, fpath)
 		}
