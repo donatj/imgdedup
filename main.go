@@ -170,6 +170,12 @@ func getFiles(paths []string) []string {
 				submode := f.Mode()
 				if submode.IsRegular() {
 					fpath, _ := filepath.Abs(path)
+
+					base := filepath.Base(fpath)
+					if string(base[0]) == "." {
+						return nil
+					}
+
 					fileList = append(fileList, fpath)
 				}
 
