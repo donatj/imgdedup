@@ -4,6 +4,7 @@ Image De-duplicator
 Simple image de-duplication in Go-lang
 
 	usage: imgdedup [options] [<directories>/files]
+	  -diff="": Command to pass dupe images to eg: cmd $left $right
 	  -subdivisions=10: Slices per axis
 	  -tolerance=100: Color delta tolerance, higher = more tolerant
 
@@ -15,6 +16,14 @@ Detects duplications despite changes in
 - quality
 - aspect ratio
 
+Compare images in your prefered difftool
+
 ## Download
 
-	go get github.com/donatj/imgdedup
+### Binaries
+	
+See: [Releases](https://github.com/donatj/imgdedup/releases).
+
+### Compile
+
+	$ go get github.com/donatj/imgdedup
