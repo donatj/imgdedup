@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/image/bmp"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -26,13 +27,14 @@ func NewPictable(dx int, dy int) pictable {
 type imageInfo struct {
 	Data     pictable
 	Bounds   image.Rectangle
-	Filesize int64
+	Filesize uint64
 }
 
 func init() {
 	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
 	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
 	image.RegisterFormat("gif", "gif", gif.Decode, gif.DecodeConfig)
+	image.RegisterFormat("bmp", "bmp", bmp.Decode, bmp.DecodeConfig)
 }
 
 func scanImg(file *os.File) (*imageInfo, error) {
@@ -74,5 +76,5 @@ func scanImg(file *os.File) (*imageInfo, error) {
 		return nil, err
 	}
 
-	return &imageInfo{Data: avgdata, Bounds: bounds, Filesize: fi.Size()}, nil
+	return &imageInfo{Data: avgdata, Bounds: bounds, Filesize: uint64(fi.Size())}, nil
 }

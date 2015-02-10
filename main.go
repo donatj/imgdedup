@@ -5,21 +5,25 @@ import (
 	"flag"
 	"fmt"
 	"github.com/cheggaaa/pb"
+	"github.com/dustin/go-humanize"
 	"io"
 	"log"
 	"math"
 	"os"
+	"os/exec"
 	"os/user"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var scratchDir string
 
 var (
-	subdivisions *int = flag.Int("subdivisions", 10, "Slices per axis")
-	tolerance    *int = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
+	subdivisions *int    = flag.Int("subdivisions", 10, "Slices per axis")
+	tolerance    *int    = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
+	difftool     *string = flag.String("diff", "", "Command to pass dupe images to eg: cmd $left $right")
 )
 
 func init() {
@@ -48,58 +52,62 @@ func init() {
 	}
 }
 
+func fileData(imgpath string) (*imageInfo, error) {
+	file, err := os.Open(imgpath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	fExt := strings.ToLower(filepath.Ext(imgpath))
+	if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" {
+
+		fi, err := file.Stat()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		h := md5.New()
+
+		cacheUnit := imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
+
+		io.WriteString(h, cacheUnit)
+		cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
+
+		imginfo, err := loadCache(cachename)
+
+		if err != nil {
+			imginfo, err = scanImg(file)
+			if err != nil {
+				return nil, err
+			}
+
+			storeCache(cachename, imginfo)
+		}
+
+		return imginfo, nil
+	}
+
+	return nil, fmt.Errorf("Ext %s unhandled", fExt)
+}
+
 func main() {
-
-	imgdata := make(map[string]*imageInfo)
-
 	fileList := getFiles(flag.Args())
 
 	bar := pb.StartNew(len(fileList))
 	bar.Output = os.Stderr
 
+	imgdata := make(map[string]*imageInfo)
 	for _, imgpath := range fileList {
 		bar.Increment()
-
-		file, err := os.Open(imgpath)
+		imginfo, err := fileData(imgpath)
 		if err != nil {
-			log.Fatal(err)
+			//			log.Println(err)
+			continue
 		}
 
-		fExt := strings.ToLower(filepath.Ext(imgpath))
-		if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" {
-
-			fi, err := file.Stat()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			h := md5.New()
-
-			cacheUnit := imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
-
-			io.WriteString(h, cacheUnit)
-			cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
-
-			imginfo, err := loadCache(cachename)
-
-			if err != nil {
-
-				imginfo, err = scanImg(file)
-				if err != nil {
-					log.Print(imgpath, " - ", err)
-					continue
-				}
-
-				storeCache(cachename, imginfo)
-			}
-
-			imgdata[imgpath] = imginfo
-
-			file.Close()
-
-		} else {
-			file.Close()
-		}
+		imgdata[imgpath] = imginfo
 	}
 
 	bar.Finish()
@@ -136,8 +144,31 @@ func main() {
 				}
 
 				if xdiff < uint64(*tolerance) {
-					fmt.Println(filename1, filename2)
-					fmt.Println(xdiff)
+
+					fmt.Println(filename1)
+					fmt.Printf("    %d x %d\n    %s\n", imgdata1.Bounds.Dx(), imgdata1.Bounds.Dy(), humanize.Bytes(imgdata1.Filesize))
+
+					fmt.Println(filename2)
+					fmt.Printf("    %d x %d\n    %s\n", imgdata2.Bounds.Dx(), imgdata2.Bounds.Dy(), humanize.Bytes(imgdata2.Filesize))
+
+					fmt.Println("")
+					fmt.Println("Diff: ", xdiff)
+
+					if xdiff > 0 && imgdata1.Filesize != imgdata2.Filesize {
+						if *difftool != "" {
+							log.Println("Launching difftool")
+							cmd := exec.Command(*difftool, filename1, filename2)
+							cmd.Run()
+							time.Sleep(500 * time.Millisecond)
+
+							// lots of difftools return a variety of exit codes so I can't really test for errors
+							//if e, ok := err.(*exec.ExitError); ok {
+							//	log.Fatal(e)
+							//}
+						}
+					}
+
+					fmt.Println("- - - - - - - - - -")
 				}
 
 			}
