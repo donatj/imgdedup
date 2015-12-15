@@ -21,9 +21,9 @@ import (
 var scratchDir string
 
 var (
-	subdivisions *int    = flag.Int("subdivisions", 10, "Slices per axis")
-	tolerance    *int    = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
-	difftool     *string = flag.String("diff", "", "Command to pass dupe images to eg: cmd $left $right")
+	subdivisions = flag.Int("subdivisions", 10, "Slices per axis")
+	tolerance    = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
+	difftool     = flag.String("diff", "", "Command to pass dupe images to eg: cmd $left $right")
 )
 
 func init() {
