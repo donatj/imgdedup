@@ -11,14 +11,14 @@ import (
 	"os"
 )
 
-type pictable [][][]uint64
+type pictable [][][3]uint64
 
 func NewPictable(dx int, dy int) pictable {
-	pic := make([][][]uint64, dx) /* type declaration */
+	pic := make([][][3]uint64, dx) /* type declaration */
 	for i := range pic {
-		pic[i] = make([][]uint64, dy) /* again the type? */
+		pic[i] = make([][3]uint64, dy) /* again the type? */
 		for j := range pic[i] {
-			pic[i][j] = []uint64{0, 0, 0}
+			pic[i][j] = [3]uint64{0, 0, 0}
 		}
 	}
 	return pic
