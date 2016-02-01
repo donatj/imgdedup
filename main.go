@@ -132,7 +132,7 @@ func main() {
 					continue
 				}
 
-				var xdiff uint64 = 0
+				var xdiff uint64
 
 				for rX := 0; rX < *subdivisions; rX++ {
 					for rY := 0; rY < *subdivisions; rY++ {
