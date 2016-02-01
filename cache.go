@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"os"
 )
@@ -12,11 +11,11 @@ func loadCache(cachename string) (*imageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := bufio.NewReader(file)
 
-	dec := json.NewDecoder(r)
+	dec := json.NewDecoder(file)
 
 	var imginfo imageInfo
+
 	err = dec.Decode(&imginfo)
 	if err != nil {
 		return nil, err
@@ -37,5 +36,4 @@ func storeCache(cachename string, imginfo *imageInfo) {
 	if err != nil {
 		panic(err)
 	}
-
 }
