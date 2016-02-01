@@ -114,8 +114,8 @@ func main() {
 
 	fileLength := len(fileList)
 
-	for i := 0; i < fileLength-1; i++ {
-		for j := i + 1; j < fileLength-1; j++ {
+	for i := 0; i < fileLength; i++ {
+		for j := i + 1; j < fileLength; j++ {
 
 			filename1 := fileList[i]
 			filename2 := fileList[j]
