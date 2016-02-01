@@ -4,18 +4,18 @@ import (
 	"crypto/md5"
 	"flag"
 	"fmt"
-	"github.com/cheggaaa/pb"
-	"github.com/dustin/go-humanize"
 	"io"
 	"log"
 	"math"
 	"os"
 	"os/exec"
 	"os/user"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/cheggaaa/pb"
+	"github.com/dustin/go-humanize"
 )
 
 var scratchDir string
@@ -41,7 +41,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	scratchDir = path.Join(usr.HomeDir, ".imgdedup")
+	scratchDir = filepath.Join(usr.HomeDir, ".imgdedup")
 
 	if _, err := os.Stat(scratchDir); err != nil {
 		if os.IsNotExist(err) {
@@ -73,7 +73,7 @@ func fileData(imgpath string) (*imageInfo, error) {
 		cacheUnit := imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
 
 		io.WriteString(h, cacheUnit)
-		cachename := path.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
+		cachename := filepath.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
 
 		imginfo, err := loadCache(cachename)
 
