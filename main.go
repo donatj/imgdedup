@@ -9,13 +9,13 @@ import (
 	"math"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/cheggaaa/pb"
 	"github.com/dustin/go-humanize"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 var scratchDir string
@@ -41,11 +41,11 @@ func init() {
 }
 
 func init() {
-	usr, err := user.Current()
+	h, err := homedir.Dir()
 	if err != nil {
 		log.Fatal(err)
 	}
-	scratchDir = filepath.Join(usr.HomeDir, ".imgdedup")
+	scratchDir = filepath.Join(h, ".imgdedup")
 
 	if _, err := os.Stat(scratchDir); err != nil {
 		if os.IsNotExist(err) {
