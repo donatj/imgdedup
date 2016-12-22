@@ -14,7 +14,7 @@ import (
 
 type pictable [][][3]uint64
 
-func NewPictable(dx int, dy int) pictable {
+func newPictable(dx int, dy int) pictable {
 	pic := make([][][3]uint64, dx) /* type declaration */
 	for i := range pic {
 		pic[i] = make([][3]uint64, dy) /* again the type? */
@@ -45,7 +45,7 @@ func scanImg(file *os.File) (*imageInfo, error) {
 	}
 	bounds := m.Bounds()
 
-	avgdata := NewPictable(*subdivisions, *subdivisions)
+	avgdata := newPictable(*subdivisions, *subdivisions)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
