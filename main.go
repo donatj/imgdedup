@@ -59,7 +59,7 @@ func init() {
 func fileData(imgpath string) (*imageInfo, error) {
 	file, err := os.Open(imgpath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	defer file.Close()
@@ -69,7 +69,7 @@ func fileData(imgpath string) (*imageInfo, error) {
 
 		fi, err := file.Stat()
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		h := md5.New()
@@ -97,7 +97,10 @@ func fileData(imgpath string) (*imageInfo, error) {
 }
 
 func main() {
-	fileList := getFiles(flag.Args())
+	fileList, err := getFiles(flag.Args())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	bar := pb.StartNew(len(fileList))
 	bar.Output = os.Stderr
@@ -182,19 +185,19 @@ func main() {
 
 }
 
-func getFiles(paths []string) []string {
+func getFiles(paths []string) ([]string, error) {
 	var fileList []string
 
 	for _, imgpath := range paths {
 
 		file, err := os.Open(imgpath)
 		if err != nil {
-			log.Fatal(err)
+			return fileList, err
 		}
 
 		fi, err := file.Stat()
 		if err != nil {
-			log.Fatal(err)
+			return fileList, err
 		}
 
 		switch mode := fi.Mode(); {
@@ -225,7 +228,7 @@ func getFiles(paths []string) []string {
 
 	}
 
-	return fileList
+	return fileList, nil
 }
 
 func absdiff(a uint64, b uint64) uint64 {
