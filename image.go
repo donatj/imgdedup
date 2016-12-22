@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"golang.org/x/image/bmp"
 	"image"
 	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"math"
 	"os"
+
+	"golang.org/x/image/bmp"
 )
 
 type pictable [][][3]uint64
