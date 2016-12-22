@@ -1,6 +1,9 @@
 Image De-duplicator
 ===================
 
+[![Go Report Card](https://goreportcard.com/badge/donatj/imgdedup)](https://goreportcard.com/report/donatj/imgdedup)
+[![Build Status](https://travis-ci.org/donatj/imgdedup.svg?branch=master)](https://travis-ci.org/donatj/imgdedup)
+
 Simple image de-duplication in Go-lang
 
 	usage: imgdedup [options] [<directories>/files]
