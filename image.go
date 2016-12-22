@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"golang.org/x/image/bmp"
+	"golang.org/x/image/webp"
 )
 
 type pictable [][][3]uint64
@@ -36,6 +37,7 @@ func init() {
 	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
 	image.RegisterFormat("gif", "gif", gif.Decode, gif.DecodeConfig)
 	image.RegisterFormat("bmp", "bmp", bmp.Decode, bmp.DecodeConfig)
+	image.RegisterFormat("webp", "webp", webp.Decode, webp.DecodeConfig)
 }
 
 func scanImg(file *os.File) (*imageInfo, error) {
