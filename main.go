@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"flag"
 	"fmt"
+	"image"
 	"io"
 	"log"
 	"math"
@@ -82,10 +83,22 @@ func fileData(imgpath string) (*imageInfo, error) {
 		imginfo, err := loadCache(cachename)
 
 		if err != nil {
-			imginfo, err = scanImg(file)
+			img, _, err := image.Decode(file)
 			if err != nil {
 				return nil, err
 			}
+
+			imginfo, err = scanImg(img)
+			if err != nil {
+				return nil, err
+			}
+
+			fi, err := file.Stat()
+			if err != nil {
+				return nil, err
+			}
+
+			imginfo.Filesize = uint64(fi.Size())
 
 			storeCache(cachename, imginfo)
 		}

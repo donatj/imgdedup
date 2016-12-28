@@ -7,7 +7,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"math"
-	"os"
 
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/webp"
@@ -40,11 +39,7 @@ func init() {
 	image.RegisterFormat("webp", "webp", webp.Decode, webp.DecodeConfig)
 }
 
-func scanImg(file *os.File) (*imageInfo, error) {
-	m, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
+func scanImg(m image.Image) (*imageInfo, error) {
 	bounds := m.Bounds()
 
 	avgdata := newPictable(*subdivisions, *subdivisions)
@@ -74,10 +69,5 @@ func scanImg(file *os.File) (*imageInfo, error) {
 		}
 	}
 
-	fi, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	return &imageInfo{Data: avgdata, Bounds: bounds, Filesize: uint64(fi.Size())}, nil
+	return &imageInfo{Data: avgdata, Bounds: bounds}, nil
 }
