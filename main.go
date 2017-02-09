@@ -153,16 +153,7 @@ func main() {
 					continue
 				}
 
-				var xdiff uint64
-
-				for rX := 0; rX < *subdivisions; rX++ {
-					for rY := 0; rY < *subdivisions; rY++ {
-						aa := avgdata1[rX][rY]
-						bb := avgdata2[rX][rY]
-
-						xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
-					}
-				}
+				xdiff := getDiff(avgdata1, avgdata2)
 
 				if xdiff < uint64(*tolerance) {
 
@@ -197,6 +188,19 @@ func main() {
 		}
 	}
 
+}
+
+func getDiff(avgdata1 pictable, avgdata2 pictable) uint64 {
+	var xdiff uint64
+	for rX := 0; rX < *subdivisions; rX++ {
+		for rY := 0; rY < *subdivisions; rY++ {
+			aa := avgdata1[rX][rY]
+			bb := avgdata2[rX][rY]
+
+			xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
+		}
+	}
+	return xdiff
 }
 
 func getFiles(paths []string) ([]string, error) {
