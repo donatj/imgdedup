@@ -100,7 +100,10 @@ func fileData(imgpath string) (*imageInfo, error) {
 
 			imginfo.Filesize = uint64(fi.Size())
 
-			storeCache(cachename, imginfo)
+			err = storeCache(cachename, imginfo)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		return imginfo, nil

@@ -24,16 +24,18 @@ func loadCache(cachename string) (*imageInfo, error) {
 	return &imginfo, nil
 }
 
-func storeCache(cachename string, imginfo *imageInfo) {
+func storeCache(cachename string, imginfo *imageInfo) error {
 	fo, err := os.Create(cachename)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer fo.Close()
 	enc := json.NewEncoder(fo)
 
 	err = enc.Encode(imginfo)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
