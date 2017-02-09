@@ -50,7 +50,9 @@ func init() {
 
 	if _, err := os.Stat(scratchDir); err != nil {
 		if os.IsNotExist(err) {
-			os.Mkdir(scratchDir, 0700)
+			if err := os.Mkdir(scratchDir, 0700); err != nil {
+				log.Fatal(err)
+			}
 		} else {
 			log.Fatal(err)
 		}
