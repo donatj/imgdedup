@@ -58,15 +58,13 @@ func init() {
 }
 
 func fileData(imgpath string) (*imageInfo, error) {
-	file, err := os.Open(imgpath)
-	if err != nil {
-		return nil, err
-	}
-
-	defer file.Close()
-
 	fExt := strings.ToLower(filepath.Ext(imgpath))
 	if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp" {
+		file, err := os.Open(imgpath)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
 
 		fi, err := file.Stat()
 		if err != nil {
