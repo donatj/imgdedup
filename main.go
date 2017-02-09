@@ -59,7 +59,7 @@ func init() {
 	}
 }
 
-func fileData(imgpath string) (*imageInfo, error) {
+func newImageInfo(imgpath string) (*imageInfo, error) {
 	fExt := strings.ToLower(filepath.Ext(imgpath))
 	if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp" {
 		file, err := os.Open(imgpath)
@@ -83,7 +83,7 @@ func fileData(imgpath string) (*imageInfo, error) {
 		imginfo, err := loadCache(cachename)
 
 		if err != nil {
-			img, _, err := image.Decode(file)
+			img, ifmt, err := image.Decode(file)
 			if err != nil {
 				return nil, err
 			}
@@ -100,6 +100,7 @@ func fileData(imgpath string) (*imageInfo, error) {
 
 			imginfo = &imageInfo{
 				Data:     pict,
+				Format:   ifmt,
 				Bounds:   img.Bounds(),
 				Filesize: uint64(fi.Size()),
 			}
@@ -128,7 +129,7 @@ func main() {
 	imgdata := make(map[string]*imageInfo)
 	for _, imgpath := range fileList {
 		bar.Increment()
-		imginfo, err := fileData(imgpath)
+		imginfo, err := newImageInfo(imgpath)
 		if err != nil {
 			//			log.Println(err)
 			continue

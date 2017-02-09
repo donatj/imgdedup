@@ -35,6 +35,7 @@ func newPictable(dx int, dy int) pictable {
 
 type imageInfo struct {
 	Data     pictable
+	Format   string
 	Bounds   image.Rectangle
 	Filesize uint64
 }
