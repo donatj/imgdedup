@@ -1,12 +1,17 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
 	"image"
 	"image/gif"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"math"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/webp"
@@ -40,6 +45,63 @@ type imageInfo struct {
 	Filesize uint64
 }
 
+func newImageInfo(imgpath string) (*imageInfo, error) {
+	fExt := strings.ToLower(filepath.Ext(imgpath))
+	if fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp" {
+		file, err := os.Open(imgpath)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		fi, err := file.Stat()
+		if err != nil {
+			return nil, err
+		}
+
+		h := md5.New()
+
+		cacheUnit := getCacheName(imgpath, fi)
+
+		io.WriteString(h, cacheUnit)
+		cachename := filepath.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
+
+		imginfo, err := loadCache(cachename)
+
+		if err != nil {
+			img, ifmt, err := image.Decode(file)
+			if err != nil {
+				return nil, err
+			}
+
+			pict, err := newPictableFromImage(img)
+			if err != nil {
+				return nil, err
+			}
+
+			fi, err := file.Stat()
+			if err != nil {
+				return nil, err
+			}
+
+			imginfo = &imageInfo{
+				Data:     pict,
+				Format:   ifmt,
+				Bounds:   img.Bounds(),
+				Filesize: uint64(fi.Size()),
+			}
+
+			err = storeCache(cachename, imginfo)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return imginfo, nil
+	}
+
+	return nil, fmt.Errorf("Ext %s unhandled", fExt)
+}
 
 func newPictableFromImage(m image.Image) (pictable, error) {
 	bounds := m.Bounds()
