@@ -73,7 +73,7 @@ func fileData(imgpath string) (*imageInfo, error) {
 
 		h := md5.New()
 
-		cacheUnit := imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
+		cacheUnit := getCacheName(imgpath, fi)
 
 		io.WriteString(h, cacheUnit)
 		cachename := filepath.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")

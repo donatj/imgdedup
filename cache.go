@@ -39,3 +39,7 @@ func storeCache(cachename string, imginfo *imageInfo) error {
 
 	return nil
 }
+
+func getCacheName(imgpath string, fi os.FileInfo) string {
+	return imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
+}
