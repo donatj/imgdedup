@@ -138,18 +138,18 @@ func main() {
 	for i := 0; i < fileLength; i++ {
 		for j := i + 1; j < fileLength; j++ {
 
-			filename1 := fileList[i]
-			filename2 := fileList[j]
+			leftf := fileList[i]
+			rightf := fileList[j]
 
-			imgdata1, ok1 := imgdata[filename1]
-			imgdata2, ok2 := imgdata[filename2]
+			leftimg, ok1 := imgdata[leftf]
+			rightimg, ok2 := imgdata[rightf]
 
 			if ok1 && ok2 {
 
-				avgdata1 := imgdata1.Data
-				avgdata2 := imgdata2.Data
+				avgdata1 := leftimg.Data
+				avgdata2 := rightimg.Data
 
-				if filename1 == filename2 {
+				if leftf == rightf {
 					continue
 				}
 
@@ -157,26 +157,18 @@ func main() {
 
 				if xdiff < uint64(*tolerance) {
 
-					fmt.Println(filename1)
-					fmt.Printf("    %d x %d\n    %s\n", imgdata1.Bounds.Dx(), imgdata1.Bounds.Dy(), humanize.Bytes(imgdata1.Filesize))
+					fmt.Println(leftf)
+					fmt.Printf("    %d x %d\n    %s\n", leftimg.Bounds.Dx(), leftimg.Bounds.Dy(), humanize.Bytes(leftimg.Filesize))
 
-					fmt.Println(filename2)
-					fmt.Printf("    %d x %d\n    %s\n", imgdata2.Bounds.Dx(), imgdata2.Bounds.Dy(), humanize.Bytes(imgdata2.Filesize))
+					fmt.Println(rightf)
+					fmt.Printf("    %d x %d\n    %s\n", rightimg.Bounds.Dx(), rightimg.Bounds.Dy(), humanize.Bytes(rightimg.Filesize))
 
 					fmt.Println("")
 					fmt.Println("Diff: ", xdiff)
 
-					if xdiff > 0 && imgdata1.Filesize != imgdata2.Filesize {
+					if xdiff > 0 && leftimg.Filesize != rightimg.Filesize {
 						if *difftool != "" {
-							log.Println("Launching difftool")
-							cmd := exec.Command(*difftool, filename1, filename2)
-							cmd.Run()
-							time.Sleep(500 * time.Millisecond)
-
-							// lots of difftools return a variety of exit codes so I can't really test for errors
-							//if e, ok := err.(*exec.ExitError); ok {
-							//	log.Fatal(e)
-							//}
+							diffTool(*difftool, leftf, rightf)
 						}
 					}
 
@@ -188,6 +180,13 @@ func main() {
 		}
 	}
 
+}
+
+func diffTool(tool string, leftf string, rightf string) {
+	log.Println("Launching difftool")
+	cmd := exec.Command(tool, leftf, rightf)
+	cmd.Run()
+	time.Sleep(500 * time.Millisecond)
 }
 
 func getDiff(avgdata1 pictable, avgdata2 pictable) uint64 {
