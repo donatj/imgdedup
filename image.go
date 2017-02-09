@@ -12,6 +12,14 @@ import (
 	"golang.org/x/image/webp"
 )
 
+func init() {
+	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
+	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
+	image.RegisterFormat("gif", "gif", gif.Decode, gif.DecodeConfig)
+	image.RegisterFormat("bmp", "bmp", bmp.Decode, bmp.DecodeConfig)
+	image.RegisterFormat("webp", "webp", webp.Decode, webp.DecodeConfig)
+}
+
 type pictable [][][3]uint64
 
 func newPictable(dx int, dy int) pictable {
@@ -31,15 +39,8 @@ type imageInfo struct {
 	Filesize uint64
 }
 
-func init() {
-	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
-	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
-	image.RegisterFormat("gif", "gif", gif.Decode, gif.DecodeConfig)
-	image.RegisterFormat("bmp", "bmp", bmp.Decode, bmp.DecodeConfig)
-	image.RegisterFormat("webp", "webp", webp.Decode, webp.DecodeConfig)
-}
 
-func scanImg(m image.Image) (*imageInfo, error) {
+func newPictableFromImage(m image.Image) (pictable, error) {
 	bounds := m.Bounds()
 
 	avgdata := newPictable(*subdivisions, *subdivisions)
@@ -69,5 +70,5 @@ func scanImg(m image.Image) (*imageInfo, error) {
 		}
 	}
 
-	return &imageInfo{Data: avgdata, Bounds: bounds}, nil
+	return avgdata, nil
 }

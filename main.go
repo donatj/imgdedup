@@ -88,7 +88,7 @@ func fileData(imgpath string) (*imageInfo, error) {
 				return nil, err
 			}
 
-			imginfo, err = scanImg(img)
+			pict, err := newPictableFromImage(img)
 			if err != nil {
 				return nil, err
 			}
@@ -98,7 +98,11 @@ func fileData(imgpath string) (*imageInfo, error) {
 				return nil, err
 			}
 
-			imginfo.Filesize = uint64(fi.Size())
+			imginfo = &imageInfo{
+				Data:     pict,
+				Bounds:   img.Bounds(),
+				Filesize: uint64(fi.Size()),
+			}
 
 			err = storeCache(cachename, imginfo)
 			if err != nil {
@@ -135,8 +139,12 @@ func main() {
 
 	bar.Finish()
 
-	fileLength := len(fileList)
+	displayDiff(fileList, imgdata)
 
+}
+
+func displayDiff(fileList []string, imgdata map[string]*imageInfo) {
+	fileLength := len(fileList)
 	for i := 0; i < fileLength; i++ {
 		for j := i + 1; j < fileLength; j++ {
 
@@ -181,7 +189,6 @@ func main() {
 
 		}
 	}
-
 }
 
 func diffTool(tool string, leftf string, rightf string) {
