@@ -4,26 +4,21 @@ import (
 	"crypto/md5"
 	"fmt"
 	"image"
-	"image/gif"
-	"image/jpeg"
-	"image/png"
 	"io"
 	"math"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/image/bmp"
-	"golang.org/x/image/webp"
-)
+	// Format self registers
 
-func init() {
-	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
-	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
-	image.RegisterFormat("gif", "gif", gif.Decode, gif.DecodeConfig)
-	image.RegisterFormat("bmp", "bmp", bmp.Decode, bmp.DecodeConfig)
-	image.RegisterFormat("webp", "webp", webp.Decode, webp.DecodeConfig)
-}
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+
+	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/webp"
+)
 
 type pictable [][][3]uint64
 
