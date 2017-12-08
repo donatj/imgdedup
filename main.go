@@ -19,6 +19,7 @@ var (
 	subdivisions = flag.Int("subdivisions", 10, "Slices per axis")
 	tolerance    = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
 	difftool     = flag.String("diff", "", "Command to pass dupe images to eg: cmd $left $right")
+	scratchDir   *string
 )
 
 func init() {
@@ -27,7 +28,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	scratchDir := flag.String("scratch-dir", filepath.Join(h, ".imgdedup"), "")
+	scratchDir = flag.String("scratch-dir", filepath.Join(h, ".imgdedup"), "")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s [options] [<directories>/files]:\n", os.Args[0])

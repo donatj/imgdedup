@@ -59,7 +59,7 @@ func newImageInfo(imgpath string) (*imageInfo, error) {
 		cacheUnit := getCacheName(imgpath, fi)
 
 		io.WriteString(h, cacheUnit)
-		cachename := filepath.Join(scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
+		cachename := filepath.Join(*scratchDir, fmt.Sprintf("%x", h.Sum(nil))+".tmp")
 
 		imginfo, err := loadCache(cachename)
 
