@@ -15,8 +15,6 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 )
 
-var scratchDir string
-
 var (
 	subdivisions = flag.Int("subdivisions", 10, "Slices per axis")
 	tolerance    = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
@@ -24,6 +22,13 @@ var (
 )
 
 func init() {
+	h, err := homedir.Dir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scratchDir := flag.String("scratch-dir", filepath.Join(h, ".imgdedup"), "")
+
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s [options] [<directories>/files]:\n", os.Args[0])
 		flag.PrintDefaults()
@@ -35,18 +40,10 @@ func init() {
 		flag.Usage()
 		os.Exit(2)
 	}
-}
 
-func init() {
-	h, err := homedir.Dir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	scratchDir = filepath.Join(h, ".imgdedup")
-
-	if _, err := os.Stat(scratchDir); err != nil {
+	if _, err := os.Stat(*scratchDir); err != nil {
 		if os.IsNotExist(err) {
-			if err := os.Mkdir(scratchDir, 0700); err != nil {
+			if err := os.Mkdir(*scratchDir, 0700); err != nil {
 				log.Fatal(err)
 			}
 		} else {
