@@ -4,7 +4,7 @@ Image De-duplicator
 [![Go Report Card](https://goreportcard.com/badge/donatj/imgdedup)](https://goreportcard.com/report/donatj/imgdedup)
 [![Build Status](https://travis-ci.org/donatj/imgdedup.svg?branch=master)](https://travis-ci.org/donatj/imgdedup)
 
-Simple image de-duplication in Go-lang
+Simple image de-duplication
 
 	usage: imgdedup [options] [<directories>/files]
 	  -diff="": Command to pass dupe images to eg: cmd $left $right
@@ -19,7 +19,7 @@ Detects duplications despite changes in
 - quality
 - aspect ratio
 
-Compare images in your prefered difftool
+Flags to compare images in your prefered difftool
 
 ## Download
 
