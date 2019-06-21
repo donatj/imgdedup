@@ -1,38 +1,50 @@
 package main
 
 import (
-	"encoding/json"
+	"bytes"
+	"crypto/md5"
+	"encoding/gob"
+	"fmt"
+	"io"
 	"os"
+
+	"github.com/prologic/bitcask"
 )
 
-func loadCache(cachename string) (*imageInfo, error) {
-	file, err := os.Open(cachename)
-	defer file.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	dec := json.NewDecoder(file)
-
-	var imginfo imageInfo
-
-	err = dec.Decode(&imginfo)
-	if err != nil {
-		return nil, err
-	}
-
-	return &imginfo, nil
+type cache struct {
+	db *bitcask.Bitcask
 }
 
-func storeCache(cachename string, imginfo *imageInfo) error {
-	fo, err := os.Create(cachename)
+func (c *cache) loadCache(cachename string) *imageInfo {
+	b, err := c.db.Get(cachename)
+	if err == bitcask.ErrKeyNotFound {
+		return nil
+	} else if err != nil {
+		panic(err)
+	}
+
+	data := bytes.NewBuffer(b)
+	dec := gob.NewDecoder(data)
+
+	imginfo := imageInfo{}
+	err = dec.Decode(&imginfo)
+	if err != nil {
+		return nil
+	}
+
+	return &imginfo
+}
+
+func (c *cache) storeCache(cachename string, imginfo *imageInfo) error {
+	data := &bytes.Buffer{}
+
+	enc := gob.NewEncoder(data)
+	err := enc.Encode(*imginfo)
 	if err != nil {
 		return err
 	}
-	defer fo.Close()
-	enc := json.NewEncoder(fo)
 
-	err = enc.Encode(imginfo)
+	err = c.db.Put(cachename, data.Bytes())
 	if err != nil {
 		return err
 	}
@@ -40,6 +52,22 @@ func storeCache(cachename string, imginfo *imageInfo) error {
 	return nil
 }
 
-func getCacheName(imgpath string, fi os.FileInfo) string {
-	return imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
+func getCacheName(imgpath string) string {
+	file, err := os.Open(imgpath)
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+
+	fi, err := file.Stat()
+	if err != nil {
+		return ""
+	}
+
+	str := imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
+
+	h := md5.New()
+	io.WriteString(h, str)
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

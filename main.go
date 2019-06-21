@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/prologic/bitcask"
+
 	"github.com/cheggaaa/pb"
 	"github.com/dustin/go-humanize"
 	homedir "github.com/mitchellh/go-homedir"
@@ -19,7 +21,11 @@ var (
 	subdivisions = flag.Int("subdivisions", 10, "Slices per axis")
 	tolerance    = flag.Int("tolerance", 100, "Color delta tolerance, higher = more tolerant")
 	difftool     = flag.String("diff", "", "Command to pass dupe images to eg: cmd $left $right")
-	scratchDir   *string
+)
+
+var (
+	cacheDir *string
+	cacheDb  *bitcask.Bitcask
 )
 
 func init() {
@@ -28,7 +34,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	scratchDir = flag.String("scratch-dir", filepath.Join(h, ".imgdedup"), "")
+	cacheDir = flag.String("cache-dir", filepath.Join(h, ".imgdedup/cacheDb"), "")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s [options] [<directories>/files]:\n", os.Args[0])
@@ -42,18 +48,18 @@ func init() {
 		os.Exit(2)
 	}
 
-	if _, err := os.Stat(*scratchDir); err != nil {
-		if os.IsNotExist(err) {
-			if err := os.Mkdir(*scratchDir, 0700); err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			log.Fatal(err)
-		}
+	cacheDb, err = bitcask.Open(*cacheDir)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
 func main() {
+	defer cacheDb.Close()
+	cacheDb.Put("funk", []byte("funk fresh"))
+
+	c := cache{cacheDb}
+
 	fileList, err := getFiles(flag.Args())
 	if err != nil {
 		log.Fatal(err)
@@ -65,10 +71,23 @@ func main() {
 	imgdata := make(map[string]*imageInfo)
 	for _, imgpath := range fileList {
 		bar.Increment()
-		imginfo, err := newImageInfo(imgpath)
-		if err != nil {
-			//			log.Println(err)
+
+		cName := getCacheName(imgpath)
+		if cName == "" {
 			continue
+		}
+
+		imginfo := c.loadCache(cName)
+		if imginfo == nil {
+			imginfo, err = newImageInfo(imgpath)
+			if err != nil {
+				continue
+			}
+
+			err := c.storeCache(cName, imginfo)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		imgdata[imgpath] = imginfo
@@ -77,7 +96,6 @@ func main() {
 	bar.Finish()
 
 	displayDiff(fileList, imgdata)
-
 }
 
 func displayDiff(fileList []string, imgdata map[string]*imageInfo) {
