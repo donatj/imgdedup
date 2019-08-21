@@ -79,7 +79,11 @@ func main() {
 		imginfo := c.loadCache(cName)
 		if imginfo == nil {
 			imginfo, err = newImageInfo(imgpath)
+			if imginfo == nil {
+				continue
+			}
 			if err != nil {
+				log.Println(err)
 				continue
 			}
 

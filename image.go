@@ -42,7 +42,7 @@ type imageInfo struct {
 func newImageInfo(imgpath string) (*imageInfo, error) {
 	fExt := strings.ToLower(filepath.Ext(imgpath))
 	if !(fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp" || fExt == ".tiff") {
-		return nil, fmt.Errorf("Ext %s unhandled", fExt)
+		return nil, nil
 	}
 
 	file, err := os.Open(imgpath)
