@@ -10,11 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/prologic/bitcask"
-
 	"github.com/cheggaaa/pb"
 	"github.com/dustin/go-humanize"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/prologic/bitcask"
 )
 
 var (
