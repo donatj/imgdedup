@@ -15,6 +15,7 @@ import (
 	_ "image/png"
 
 	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
 )
 
@@ -40,7 +41,7 @@ type imageInfo struct {
 
 func newImageInfo(imgpath string) (*imageInfo, error) {
 	fExt := strings.ToLower(filepath.Ext(imgpath))
-	if !(fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp") {
+	if !(fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp" || fExt == ".tiff") {
 		return nil, fmt.Errorf("Ext %s unhandled", fExt)
 	}
 
