@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/cheggaaa/pb"
+	"github.com/cheggaaa/pb/v3"
 	"github.com/dustin/go-humanize"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/prologic/bitcask"
@@ -65,7 +65,7 @@ func main() {
 	}
 
 	bar := pb.StartNew(len(fileList))
-	bar.Output = os.Stderr
+	bar.SetWriter(os.Stderr)
 
 	imgdata := make(map[string]*imageInfo)
 	for _, imgpath := range fileList {
