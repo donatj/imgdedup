@@ -1,3 +1,11 @@
+default: test install
+
+test:
+	go test ./...
+
+install:
+	go install
+
 .PHONY: clean
 clean:
 	-rm -rf release
