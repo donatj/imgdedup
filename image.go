@@ -16,6 +16,7 @@ import (
 	_ "image/png"
 
 	// Extended Image Formats
+
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
@@ -110,4 +111,21 @@ func NewPictableFromImage(m image.Image, subdivisions int) (Pictable, error) {
 	}
 
 	return avgdata, nil
+}
+
+func Diff(avgdata1 Pictable, avgdata2 Pictable, subdivisions int) uint64 {
+	var xdiff uint64
+	for rX := 0; rX < subdivisions; rX++ {
+		for rY := 0; rY < subdivisions; rY++ {
+			aa := avgdata1[rX][rY]
+			bb := avgdata2[rX][rY]
+
+			xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
+		}
+	}
+	return xdiff
+}
+
+func absdiff(a uint64, b uint64) uint64 {
+	return uint64(math.Abs(float64(a) - float64(b)))
 }

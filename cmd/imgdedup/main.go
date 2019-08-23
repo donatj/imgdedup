@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -123,7 +122,7 @@ func displayDiff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) {
 					continue
 				}
 
-				xdiff := getDiff(avgdata1, avgdata2)
+				xdiff := imgdedup.Diff(avgdata1, avgdata2, *subdivisions)
 
 				if xdiff < uint64(*tolerance) {
 
@@ -156,19 +155,6 @@ func diffTool(tool string, leftf string, rightf string) {
 	cmd := exec.Command(tool, leftf, rightf)
 	cmd.Run()
 	time.Sleep(500 * time.Millisecond)
-}
-
-func getDiff(avgdata1 imgdedup.Pictable, avgdata2 imgdedup.Pictable) uint64 {
-	var xdiff uint64
-	for rX := 0; rX < *subdivisions; rX++ {
-		for rY := 0; rY < *subdivisions; rY++ {
-			aa := avgdata1[rX][rY]
-			bb := avgdata2[rX][rY]
-
-			xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
-		}
-	}
-	return xdiff
 }
 
 func getFiles(paths []string) ([]string, error) {
@@ -215,8 +201,4 @@ func getFiles(paths []string) ([]string, error) {
 	}
 
 	return fileList, nil
-}
-
-func absdiff(a uint64, b uint64) uint64 {
-	return uint64(math.Abs(float64(a) - float64(b)))
 }
