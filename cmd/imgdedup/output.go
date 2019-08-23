@@ -20,14 +20,11 @@ func displayDiff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) {
 
 			if ok1 && ok2 {
 
-				avgdata1 := leftimg.Data
-				avgdata2 := rightimg.Data
-
 				if leftf == rightf {
 					continue
 				}
 
-				xdiff := imgdedup.Diff(avgdata1, avgdata2, *subdivisions)
+				xdiff := imgdedup.Diff(leftimg, rightimg)
 
 				if xdiff < uint64(*tolerance) {
 
