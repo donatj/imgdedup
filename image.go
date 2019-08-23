@@ -1,4 +1,4 @@
-package main
+package imgdedup
 
 import (
 	"fmt"
@@ -10,18 +10,20 @@ import (
 
 	// Format self registers
 
+	// Standard Image Formats
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 
+	// Extended Image Formats
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
 )
 
-type pictable [][][3]uint64
+type Pictable [][][3]uint64
 
-func newPictable(dx int, dy int) pictable {
+func NewPictable(dx int, dy int) Pictable {
 	pic := make([][][3]uint64, dx) /* type declaration */
 	for i := range pic {
 		pic[i] = make([][3]uint64, dy) /* again the type? */
@@ -32,14 +34,14 @@ func newPictable(dx int, dy int) pictable {
 	return pic
 }
 
-type imageInfo struct {
-	Data     pictable
+type ImageInfo struct {
+	Data     Pictable
 	Format   string
 	Bounds   image.Rectangle
 	Filesize uint64
 }
 
-func newImageInfo(imgpath string) (*imageInfo, error) {
+func NewImageInfo(imgpath string, subdivisions int) (*ImageInfo, error) {
 	fExt := strings.ToLower(filepath.Ext(imgpath))
 	if !(fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp" || fExt == ".tiff") {
 		return nil, nil
@@ -56,7 +58,7 @@ func newImageInfo(imgpath string) (*imageInfo, error) {
 		return nil, err
 	}
 
-	pict, err := newPictableFromImage(img)
+	pict, err := NewPictableFromImage(img, subdivisions)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +68,7 @@ func newImageInfo(imgpath string) (*imageInfo, error) {
 		return nil, err
 	}
 
-	imginfo := &imageInfo{
+	imginfo := &ImageInfo{
 		Data:     pict,
 		Format:   ifmt,
 		Bounds:   img.Bounds(),
@@ -77,15 +79,15 @@ func newImageInfo(imgpath string) (*imageInfo, error) {
 
 }
 
-func newPictableFromImage(m image.Image) (pictable, error) {
+func NewPictableFromImage(m image.Image, subdivisions int) (Pictable, error) {
 	bounds := m.Bounds()
 
-	avgdata := newPictable(*subdivisions, *subdivisions)
+	avgdata := NewPictable(subdivisions, subdivisions)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			rX := int64(math.Floor((float64(x) / float64(bounds.Max.X)) * float64(*subdivisions)))
-			rY := int64(math.Floor((float64(y) / float64(bounds.Max.Y)) * float64(*subdivisions)))
+			rX := int64(math.Floor((float64(x) / float64(bounds.Max.X)) * float64(subdivisions)))
+			rY := int64(math.Floor((float64(y) / float64(bounds.Max.Y)) * float64(subdivisions)))
 
 			r, g, b, _ := m.At(x, y).RGBA()
 			avgdata[rX][rY][0] += uint64((float32(r) / 65535) * 255)
@@ -94,13 +96,13 @@ func newPictableFromImage(m image.Image) (pictable, error) {
 		}
 	}
 
-	divisor := uint64((bounds.Max.X / *subdivisions) * (bounds.Max.Y / *subdivisions))
+	divisor := uint64((bounds.Max.X / subdivisions) * (bounds.Max.Y / subdivisions))
 	if divisor == 0 {
 		return nil, fmt.Errorf("Image dimensions %d x %d invalid", bounds.Max.X, bounds.Max.Y)
 	}
 
-	for rX := 0; rX < *subdivisions; rX++ {
-		for rY := 0; rY < *subdivisions; rY++ {
+	for rX := 0; rX < subdivisions; rX++ {
+		for rY := 0; rY < subdivisions; rY++ {
 			avgdata[rX][rY][0] = avgdata[rX][rY][0] / divisor
 			avgdata[rX][rY][1] = avgdata[rX][rY][1] / divisor
 			avgdata[rX][rY][2] = avgdata[rX][rY][2] / divisor

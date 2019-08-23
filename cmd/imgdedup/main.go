@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/donatj/imgdedup"
+	"github.com/donatj/imgdedup/cache"
 	"github.com/dustin/go-humanize"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/prologic/bitcask"
@@ -57,7 +59,7 @@ func main() {
 	defer cacheDb.Close()
 	cacheDb.Put("funk", []byte("funk fresh"))
 
-	c := cache{cacheDb}
+	c := cache.New(cacheDb)
 
 	fileList, err := getFiles(flag.Args())
 	if err != nil {
@@ -67,18 +69,18 @@ func main() {
 	bar := pb.StartNew(len(fileList))
 	bar.SetWriter(os.Stderr)
 
-	imgdata := make(map[string]*imageInfo)
+	imgdata := make(map[string]*imgdedup.ImageInfo)
 	for _, imgpath := range fileList {
 		bar.Increment()
 
-		cName := getCacheName(imgpath)
+		cName := cache.GetCacheName(imgpath, *subdivisions)
 		if cName == "" {
 			continue
 		}
 
-		imginfo := c.loadCache(cName)
+		imginfo := c.LoadCache(cName)
 		if imginfo == nil {
-			imginfo, err = newImageInfo(imgpath)
+			imginfo, err = imgdedup.NewImageInfo(imgpath, *subdivisions)
 			if imginfo == nil {
 				continue
 			}
@@ -87,7 +89,7 @@ func main() {
 				continue
 			}
 
-			err := c.storeCache(cName, imginfo)
+			err := c.StoreCache(cName, imginfo)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -101,7 +103,7 @@ func main() {
 	displayDiff(fileList, imgdata)
 }
 
-func displayDiff(fileList []string, imgdata map[string]*imageInfo) {
+func displayDiff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) {
 	fileLength := len(fileList)
 	for i := 0; i < fileLength; i++ {
 		for j := i + 1; j < fileLength; j++ {
@@ -156,7 +158,7 @@ func diffTool(tool string, leftf string, rightf string) {
 	time.Sleep(500 * time.Millisecond)
 }
 
-func getDiff(avgdata1 pictable, avgdata2 pictable) uint64 {
+func getDiff(avgdata1 imgdedup.Pictable, avgdata2 imgdedup.Pictable) uint64 {
 	var xdiff uint64
 	for rX := 0; rX < *subdivisions; rX++ {
 		for rY := 0; rY < *subdivisions; rY++ {

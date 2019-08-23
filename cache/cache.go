@@ -1,4 +1,4 @@
-package main
+package cache
 
 import (
 	"bytes"
@@ -8,14 +8,19 @@ import (
 	"io"
 	"os"
 
+	"github.com/donatj/imgdedup"
 	"github.com/prologic/bitcask"
 )
 
-type cache struct {
+type Cache struct {
 	db *bitcask.Bitcask
 }
 
-func (c *cache) loadCache(cachename string) *imageInfo {
+func New(db *bitcask.Bitcask) *Cache {
+	return &Cache{db}
+}
+
+func (c *Cache) LoadCache(cachename string) *imgdedup.ImageInfo {
 	b, err := c.db.Get(cachename)
 	if err == bitcask.ErrKeyNotFound {
 		return nil
@@ -26,7 +31,7 @@ func (c *cache) loadCache(cachename string) *imageInfo {
 	data := bytes.NewBuffer(b)
 	dec := gob.NewDecoder(data)
 
-	imginfo := imageInfo{}
+	imginfo := imgdedup.ImageInfo{}
 	err = dec.Decode(&imginfo)
 	if err != nil {
 		return nil
@@ -35,7 +40,7 @@ func (c *cache) loadCache(cachename string) *imageInfo {
 	return &imginfo
 }
 
-func (c *cache) storeCache(cachename string, imginfo *imageInfo) error {
+func (c *Cache) StoreCache(cachename string, imginfo *imgdedup.ImageInfo) error {
 	data := &bytes.Buffer{}
 
 	enc := gob.NewEncoder(data)
@@ -52,7 +57,7 @@ func (c *cache) storeCache(cachename string, imginfo *imageInfo) error {
 	return nil
 }
 
-func getCacheName(imgpath string) string {
+func GetCacheName(imgpath string, subdivisions int) string {
 	file, err := os.Open(imgpath)
 	if err != nil {
 		return ""
@@ -64,7 +69,7 @@ func getCacheName(imgpath string) string {
 		return ""
 	}
 
-	str := imgpath + "|" + string(*subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
+	str := imgpath + "|" + string(subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
 
 	h := md5.New()
 	io.WriteString(h, str)
