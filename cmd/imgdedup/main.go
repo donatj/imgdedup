@@ -12,7 +12,6 @@ import (
 	"github.com/cheggaaa/pb/v3"
 	"github.com/donatj/imgdedup"
 	"github.com/donatj/imgdedup/cache"
-	"github.com/dustin/go-humanize"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/prologic/bitcask"
 )
@@ -102,103 +101,9 @@ func main() {
 	displayDiff(fileList, imgdata)
 }
 
-func displayDiff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) {
-	fileLength := len(fileList)
-	for i := 0; i < fileLength; i++ {
-		for j := i + 1; j < fileLength; j++ {
-
-			leftf := fileList[i]
-			rightf := fileList[j]
-
-			leftimg, ok1 := imgdata[leftf]
-			rightimg, ok2 := imgdata[rightf]
-
-			if ok1 && ok2 {
-
-				avgdata1 := leftimg.Data
-				avgdata2 := rightimg.Data
-
-				if leftf == rightf {
-					continue
-				}
-
-				xdiff := imgdedup.Diff(avgdata1, avgdata2, *subdivisions)
-
-				if xdiff < uint64(*tolerance) {
-
-					fmt.Println(leftf)
-					fmt.Printf("    %d x %d\n    %s\n", leftimg.Bounds.Dx(), leftimg.Bounds.Dy(), humanize.Bytes(leftimg.Filesize))
-
-					fmt.Println(rightf)
-					fmt.Printf("    %d x %d\n    %s\n", rightimg.Bounds.Dx(), rightimg.Bounds.Dy(), humanize.Bytes(rightimg.Filesize))
-
-					fmt.Println("")
-					fmt.Println("Diff: ", xdiff)
-
-					if xdiff > 0 && leftimg.Filesize != rightimg.Filesize {
-						if *difftool != "" {
-							diffTool(*difftool, leftf, rightf)
-						}
-					}
-
-					fmt.Println("- - - - - - - - - -")
-				}
-
-			}
-
-		}
-	}
-}
-
 func diffTool(tool string, leftf string, rightf string) {
 	log.Println("Launching difftool")
 	cmd := exec.Command(tool, leftf, rightf)
 	cmd.Run()
 	time.Sleep(500 * time.Millisecond)
-}
-
-func getFiles(paths []string) ([]string, error) {
-	var fileList []string
-
-	for _, imgpath := range paths {
-
-		file, err := os.Open(imgpath)
-		if err != nil {
-			return fileList, err
-		}
-
-		fi, err := file.Stat()
-		if err != nil {
-			return fileList, err
-		}
-
-		switch mode := fi.Mode(); {
-		case mode.IsDir():
-			// Walk is recursive
-			filepath.Walk(imgpath, func(path string, f os.FileInfo, err error) error {
-
-				submode := f.Mode()
-				if submode.IsRegular() {
-					fpath, _ := filepath.Abs(path)
-
-					base := filepath.Base(fpath)
-					if string(base[0]) == "." {
-						return nil
-					}
-
-					fileList = append(fileList, fpath)
-				}
-
-				return nil
-			})
-		case mode.IsRegular():
-			fpath, _ := filepath.Abs(imgpath)
-			fileList = append(fileList, fpath)
-		}
-
-		file.Close()
-
-	}
-
-	return fileList, nil
 }
