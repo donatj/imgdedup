@@ -64,6 +64,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fileList = filterFiles(fileList,
+		[]string{".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff"})
+
 	bar := pb.StartNew(len(fileList))
 	bar.SetWriter(os.Stderr)
 

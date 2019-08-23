@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func getFiles(paths []string) ([]string, error) {
@@ -49,4 +50,20 @@ func getFiles(paths []string) ([]string, error) {
 	}
 
 	return fileList, nil
+}
+
+func filterFiles(paths []string, exts []string) []string {
+	n := 0
+pathLoop:
+	for _, path := range paths {
+		fExt := strings.ToLower(filepath.Ext(path))
+		for _, ext := range exts {
+			if fExt == ext {
+				paths[n] = path
+				n++
+				continue pathLoop
+			}
+		}
+	}
+	return paths[:n]
 }

@@ -5,8 +5,6 @@ import (
 	"image"
 	"math"
 	"os"
-	"path/filepath"
-	"strings"
 
 	// Format self registers
 
@@ -43,11 +41,6 @@ type ImageInfo struct {
 }
 
 func NewImageInfo(imgpath string, subdivisions int) (*ImageInfo, error) {
-	fExt := strings.ToLower(filepath.Ext(imgpath))
-	if !(fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp" || fExt == ".tiff") {
-		return nil, nil
-	}
-
 	file, err := os.Open(imgpath)
 	defer file.Close()
 	if err != nil {
