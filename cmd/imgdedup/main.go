@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"sync"
 	"time"
 
 	"github.com/cheggaaa/pb/v3"
@@ -55,7 +57,6 @@ func init() {
 
 func main() {
 	defer cacheDb.Close()
-	cacheDb.Put("funk", []byte("funk fresh"))
 
 	c := cache.New(cacheDb)
 
@@ -70,34 +71,58 @@ func main() {
 	bar := pb.StartNew(len(fileList))
 	bar.SetWriter(os.Stderr)
 
+	fileChan := make(chan string)
+
 	imgdata := make(map[string]*imgdedup.ImageInfo)
-	for _, imgpath := range fileList {
-		bar.Increment()
+	imgmut := sync.Mutex{}
 
-		cName := cache.GetCacheName(imgpath, *subdivisions)
-		if cName == "" {
-			continue
-		}
+	wg := sync.WaitGroup{}
+	for i := 0; i <= runtime.NumCPU()*2; i++ {
+		wg.Add(1)
+		go func() {
+			for {
+				imgpath, ok := <-fileChan
+				if !ok {
+					break
+				}
+				cName := cache.GetCacheName(imgpath, *subdivisions)
+				if cName == "" {
+					continue
+				}
 
-		imginfo := c.LoadCache(cName)
-		if imginfo == nil {
-			imginfo, err = imgdedup.NewImageInfo(imgpath, *subdivisions)
-			if imginfo == nil {
-				continue
+				imginfo := c.LoadCache(cName)
+				if imginfo == nil {
+					imginfo, err = imgdedup.NewImageInfo(imgpath, *subdivisions)
+					if imginfo == nil {
+						continue
+					}
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+
+					err := c.StoreCache(cName, imginfo)
+					if err != nil {
+						log.Fatal(err)
+					}
+				}
+
+				imgmut.Lock()
+				imgdata[imgpath] = imginfo
+				imgmut.Unlock()
+
+				bar.Increment()
 			}
-			if err != nil {
-				log.Println(err)
-				continue
-			}
 
-			err := c.StoreCache(cName, imginfo)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-
-		imgdata[imgpath] = imginfo
+			wg.Done()
+		}()
 	}
+
+	for _, imgpath := range fileList {
+		fileChan <- imgpath
+	}
+	close(fileChan)
+	wg.Wait()
 
 	bar.Finish()
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 
 	"github.com/donatj/imgdedup"
 	"github.com/prologic/bitcask"
@@ -14,13 +15,20 @@ import (
 
 type Cache struct {
 	db *bitcask.Bitcask
+
+	sync.Mutex
 }
 
 func New(db *bitcask.Bitcask) *Cache {
-	return &Cache{db}
+	return &Cache{
+		db: db,
+	}
 }
 
 func (c *Cache) LoadCache(cachename string) *imgdedup.ImageInfo {
+	c.Lock()
+	defer c.Unlock()
+
 	b, err := c.db.Get(cachename)
 	if err == bitcask.ErrKeyNotFound {
 		return nil
@@ -41,6 +49,9 @@ func (c *Cache) LoadCache(cachename string) *imgdedup.ImageInfo {
 }
 
 func (c *Cache) StoreCache(cachename string, imginfo *imgdedup.ImageInfo) error {
+	c.Lock()
+	defer c.Unlock()
+
 	data := &bytes.Buffer{}
 
 	enc := gob.NewEncoder(data)
