@@ -94,8 +94,10 @@ func main() {
 				if !ok {
 					break
 				}
+
 				cName := cache.GetCacheName(imgpath, *subdivisions)
 				if cName == "" {
+					log.Println("failed to handle", imgpath)
 					continue
 				}
 
