@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/donatj/imgdedup"
 	"github.com/dustin/go-humanize"
@@ -15,8 +16,14 @@ type ImgDiff struct {
 	Diff uint64
 }
 
-func diff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) []ImgDiff {
+func diff(imgdata map[string]*imgdedup.ImageInfo, tolerance uint64) []ImgDiff {
 	out := []ImgDiff{}
+
+	fileList := make([]string, 0, len(imgdata))
+	for k := range imgdata {
+		fileList = append(fileList, k)
+	}
+	sort.Strings(fileList)
 
 	fileLength := len(fileList)
 	for i := 0; i < fileLength; i++ {
@@ -30,7 +37,7 @@ func diff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) []ImgDiff {
 
 			if ok1 && ok2 {
 
-				if leftf == rightf {
+				if leftimg.Path == rightimg.Path {
 					continue
 				}
 
@@ -40,7 +47,7 @@ func diff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) []ImgDiff {
 					continue
 				}
 
-				if xdiff < uint64(*tolerance) {
+				if xdiff < tolerance {
 					out = append(out, ImgDiff{
 						Left:  leftimg,
 						Right: rightimg,

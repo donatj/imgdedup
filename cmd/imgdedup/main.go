@@ -135,7 +135,7 @@ func main() {
 
 	bar.Finish()
 
-	d := diff(fileList, imgdata)
+	d := diff(imgdata, *tolerance)
 	displayDiff(d)
 
 	if *difftool != "" {
