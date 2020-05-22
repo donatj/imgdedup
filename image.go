@@ -22,9 +22,11 @@ func newPictable(dx int, dy int) pictable {
 }
 
 type ImageInfo struct {
-	Data     pictable
-	Format   string
-	Bounds   image.Rectangle
+	Data   pictable
+	Format string
+	Bounds image.Rectangle
+
+	Path     string
 	Filesize uint64
 }
 
@@ -51,9 +53,11 @@ func NewImageInfo(imgpath string, subdivisions int) (*ImageInfo, error) {
 	}
 
 	imginfo := &ImageInfo{
-		Data:     pict,
-		Format:   ifmt,
-		Bounds:   img.Bounds(),
+		Data:   pict,
+		Format: ifmt,
+		Bounds: img.Bounds(),
+
+		Path:     imgpath,
 		Filesize: uint64(fi.Size()),
 	}
 

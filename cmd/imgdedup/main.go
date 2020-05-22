@@ -137,7 +137,8 @@ func main() {
 
 	bar.Finish()
 
-	displayDiff(fileList, imgdata)
+	d := diff(fileList, imgdata)
+	displayDiff(d)
 }
 
 func diffTool(tool string, leftf string, rightf string) {
