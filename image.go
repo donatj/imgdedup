@@ -8,9 +8,9 @@ import (
 	"os"
 )
 
-type pictable [][][3]uint64
+type Pictable [][][3]uint64
 
-func newPictable(dx int, dy int) pictable {
+func newPictable(dx int, dy int) Pictable {
 	pic := make([][][3]uint64, dx) /* type declaration */
 	for i := range pic {
 		pic[i] = make([][3]uint64, dy) /* again the type? */
@@ -22,7 +22,7 @@ func newPictable(dx int, dy int) pictable {
 }
 
 type ImageInfo struct {
-	Data   pictable
+	Data   Pictable
 	Format string
 	Bounds image.Rectangle
 
@@ -65,7 +65,7 @@ func NewImageInfo(imgpath string, subdivisions uint) (*ImageInfo, error) {
 
 }
 
-func pictableFromImage(m image.Image, usize uint) (pictable, error) {
+func pictableFromImage(m image.Image, usize uint) (Pictable, error) {
 	bounds := m.Bounds()
 	size := int(usize)
 
@@ -106,7 +106,7 @@ func DiffImageInfos(left *ImageInfo, right *ImageInfo) (uint64, error) {
 	return diffPictables(left.Data, right.Data)
 }
 
-func diffPictables(left pictable, right pictable) (uint64, error) {
+func diffPictables(left Pictable, right Pictable) (uint64, error) {
 	if len(left) != len(right) {
 		return 0, ErrorDissimilarSubdivisions
 	}
