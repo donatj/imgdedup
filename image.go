@@ -1,6 +1,7 @@
 package imgdedup
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"math"
@@ -107,9 +108,12 @@ func pictableFromImage(m image.Image, size int) (pictable, error) {
 	return avgdata, nil
 }
 
-func Diff(left *ImageInfo, right *ImageInfo) uint64 {
+// ErrorDissimilarSubdivisions is returned on trying to compare ImageInfo's of different sizes
+var ErrorDissimilarSubdivisions = errors.New("diff: cannot compare dissimilar subdivisions")
+
+func Diff(left *ImageInfo, right *ImageInfo) (uint64, error) {
 	if left.Subdivisions != right.Subdivisions {
-		panic("cannot compare dissimilar subdivisions")
+		return 0, ErrorDissimilarSubdivisions
 	}
 
 	var xdiff uint64
@@ -121,7 +125,7 @@ func Diff(left *ImageInfo, right *ImageInfo) uint64 {
 			xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
 		}
 	}
-	return xdiff
+	return xdiff, nil
 }
 
 func absdiff(a uint64, b uint64) uint64 {

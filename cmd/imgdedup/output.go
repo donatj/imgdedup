@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/donatj/imgdedup"
 	humanize "github.com/dustin/go-humanize"
@@ -24,7 +25,11 @@ func displayDiff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) {
 					continue
 				}
 
-				xdiff := imgdedup.Diff(leftimg, rightimg)
+				xdiff, err := imgdedup.Diff(leftimg, rightimg)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
 
 				if xdiff < uint64(*tolerance) {
 
@@ -37,7 +42,7 @@ func displayDiff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) {
 					fmt.Println("")
 					fmt.Println("Diff: ", xdiff)
 
-					if xdiff > 0 && leftimg.Filesize != rightimg.Filesize {
+					if xdiff > 0 || leftimg.Filesize != rightimg.Filesize {
 						if *difftool != "" {
 							diffTool(*difftool, leftf, rightf)
 						}
