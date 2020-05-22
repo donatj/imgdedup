@@ -68,7 +68,7 @@ func (c *Cache) StoreCache(cachename string, imginfo *imgdedup.ImageInfo) error 
 	return nil
 }
 
-func GetCacheName(imgpath string, subdivisions int) string {
+func GetCacheName(imgpath string, subdivisions uint) string {
 	file, err := os.Open(imgpath)
 	if err != nil {
 		return ""

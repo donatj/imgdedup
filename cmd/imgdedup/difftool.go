@@ -9,7 +9,7 @@ import (
 func diffToolDiff(tool string, diffs []ImgDiff) {
 	for _, diff := range diffs {
 		if diff.Diff > 0 || diff.Left.Filesize != diff.Right.Filesize {
-			if *difftool != "" {
+			if tool != "" {
 				diffTool(tool, diff.Left.Path, diff.Right.Path)
 				time.Sleep(500 * time.Millisecond)
 			}

@@ -30,7 +30,7 @@ type ImageInfo struct {
 	Filesize uint64
 }
 
-func NewImageInfo(imgpath string, subdivisions int) (*ImageInfo, error) {
+func NewImageInfo(imgpath string, subdivisions uint) (*ImageInfo, error) {
 	file, err := os.Open(imgpath)
 	defer file.Close()
 	if err != nil {
@@ -65,8 +65,9 @@ func NewImageInfo(imgpath string, subdivisions int) (*ImageInfo, error) {
 
 }
 
-func pictableFromImage(m image.Image, size int) (pictable, error) {
+func pictableFromImage(m image.Image, usize uint) (pictable, error) {
 	bounds := m.Bounds()
+	size := int(usize)
 
 	avgdata := newPictable(size, size)
 
@@ -125,7 +126,7 @@ func diffPictables(left pictable, right pictable) (uint64, error) {
 	return xdiff, nil
 }
 
-func DiffImages(left image.Image, right image.Image, subdivisions int) (uint64, error) {
+func DiffImages(left image.Image, right image.Image, subdivisions uint) (uint64, error) {
 	lp, err := pictableFromImage(left, subdivisions)
 	if err != nil {
 		return 0, err
