@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"sort"
@@ -76,4 +77,32 @@ func displayDiff(diffs []ImgDiff) {
 
 		fmt.Println("- - - - - - - - - -")
 	}
+}
+
+func displayDiffJSON(diffs []ImgDiff) {
+	type diffJSON struct {
+		LeftPath  string
+		RightPath string
+		Diff      uint64
+	}
+
+	result := make([]diffJSON, 0, len(diffs))
+
+	for _, diff := range diffs {
+		d := diffJSON{
+			LeftPath:  diff.Left.Path,
+			RightPath: diff.Right.Path,
+
+			Diff: diff.Diff,
+		}
+
+		result = append(result, d)
+	}
+
+	b, err := json.Marshal(result)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Print(string(b))
 }

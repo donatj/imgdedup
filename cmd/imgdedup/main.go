@@ -31,6 +31,7 @@ import (
 var (
 	subdivisions = flag.Uint("subdivisions", 10, "Slices per axis")
 	tolerance    = flag.Uint64("tolerance", 100, "Color delta tolerance, higher = more tolerant")
+	format       = flag.String("format", "default", "Output format - options: default json")
 	difftool     = flag.String("diff", "", "Command to pass dupe images to eg: cmd $left $right")
 )
 
@@ -138,9 +139,18 @@ func main() {
 	bar.Finish()
 
 	d := diff(imgdata, *tolerance)
-	displayDiff(d)
+
+	switch *format {
+	case "default":
+		displayDiff(d)
+	case "json":
+		displayDiffJSON(d)
+	default:
+		log.Fatal("unhandled format", *format)
+	}
 
 	if *difftool != "" {
 		diffToolDiff(*difftool, d)
 	}
+
 }
