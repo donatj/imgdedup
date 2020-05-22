@@ -47,8 +47,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	cacheDir = flag.String("cache-dir", filepath.Join(h, ".imgdedup/cacheDb"), "")
-
+	cacheDir = flag.String("cache-dir", filepath.Join(h, ".cache", "imgdedup", "cacheDb"), "")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s [options] [<directories>/files]:\n", os.Args[0])
 		flag.PrintDefaults()
