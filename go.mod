@@ -8,5 +8,5 @@ require (
 	github.com/mattn/go-isatty v0.0.9 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/prologic/bitcask v0.3.2
-	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
+	golang.org/x/image v0.0.0-20200430140353-33d19683fad8
 )

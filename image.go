@@ -1,27 +1,16 @@
-package main
+package imgdedup
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"math"
 	"os"
-	"path/filepath"
-	"strings"
-
-	// Format self registers
-
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
-
-	_ "golang.org/x/image/bmp"
-	_ "golang.org/x/image/tiff"
-	_ "golang.org/x/image/webp"
 )
 
-type pictable [][][3]uint64
+type Pictable [][][3]uint64
 
-func newPictable(dx int, dy int) pictable {
+func newPictable(dx int, dy int) Pictable {
 	pic := make([][][3]uint64, dx) /* type declaration */
 	for i := range pic {
 		pic[i] = make([][3]uint64, dy) /* again the type? */
@@ -32,19 +21,16 @@ func newPictable(dx int, dy int) pictable {
 	return pic
 }
 
-type imageInfo struct {
-	Data     pictable
-	Format   string
-	Bounds   image.Rectangle
+type ImageInfo struct {
+	Data   Pictable
+	Format string
+	Bounds image.Rectangle
+
+	Path     string
 	Filesize uint64
 }
 
-func newImageInfo(imgpath string) (*imageInfo, error) {
-	fExt := strings.ToLower(filepath.Ext(imgpath))
-	if !(fExt == ".png" || fExt == ".jpg" || fExt == ".jpeg" || fExt == ".gif" || fExt == ".bmp" || fExt == ".webp" || fExt == ".tiff") {
-		return nil, nil
-	}
-
+func NewImageInfo(imgpath string, subdivisions uint) (*ImageInfo, error) {
 	file, err := os.Open(imgpath)
 	defer file.Close()
 	if err != nil {
@@ -56,7 +42,7 @@ func newImageInfo(imgpath string) (*imageInfo, error) {
 		return nil, err
 	}
 
-	pict, err := newPictableFromImage(img)
+	pict, err := pictableFromImage(img, subdivisions)
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +52,12 @@ func newImageInfo(imgpath string) (*imageInfo, error) {
 		return nil, err
 	}
 
-	imginfo := &imageInfo{
-		Data:     pict,
-		Format:   ifmt,
-		Bounds:   img.Bounds(),
+	imginfo := &ImageInfo{
+		Data:   pict,
+		Format: ifmt,
+		Bounds: img.Bounds(),
+
+		Path:     imgpath,
 		Filesize: uint64(fi.Size()),
 	}
 
@@ -77,15 +65,16 @@ func newImageInfo(imgpath string) (*imageInfo, error) {
 
 }
 
-func newPictableFromImage(m image.Image) (pictable, error) {
+func pictableFromImage(m image.Image, usize uint) (Pictable, error) {
 	bounds := m.Bounds()
+	size := int(usize)
 
-	avgdata := newPictable(*subdivisions, *subdivisions)
+	avgdata := newPictable(size, size)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			rX := int64(math.Floor((float64(x) / float64(bounds.Max.X)) * float64(*subdivisions)))
-			rY := int64(math.Floor((float64(y) / float64(bounds.Max.Y)) * float64(*subdivisions)))
+			rX := int64(math.Floor((float64(x) / float64(bounds.Max.X)) * float64(size)))
+			rY := int64(math.Floor((float64(y) / float64(bounds.Max.Y)) * float64(size)))
 
 			r, g, b, _ := m.At(x, y).RGBA()
 			avgdata[rX][rY][0] += uint64((float32(r) / 65535) * 255)
@@ -94,13 +83,13 @@ func newPictableFromImage(m image.Image) (pictable, error) {
 		}
 	}
 
-	divisor := uint64((bounds.Max.X / *subdivisions) * (bounds.Max.Y / *subdivisions))
+	divisor := uint64((bounds.Max.X / size) * (bounds.Max.Y / size))
 	if divisor == 0 {
 		return nil, fmt.Errorf("Image dimensions %d x %d invalid", bounds.Max.X, bounds.Max.Y)
 	}
 
-	for rX := 0; rX < *subdivisions; rX++ {
-		for rY := 0; rY < *subdivisions; rY++ {
+	for rX := 0; rX < size; rX++ {
+		for rY := 0; rY < size; rY++ {
 			avgdata[rX][rY][0] = avgdata[rX][rY][0] / divisor
 			avgdata[rX][rY][1] = avgdata[rX][rY][1] / divisor
 			avgdata[rX][rY][2] = avgdata[rX][rY][2] / divisor
@@ -108,4 +97,49 @@ func newPictableFromImage(m image.Image) (pictable, error) {
 	}
 
 	return avgdata, nil
+}
+
+// ErrorDissimilarSubdivisions is returned on trying to compare ImageInfo's of different sizes
+var ErrorDissimilarSubdivisions = errors.New("diff: cannot compare dissimilar subdivisions")
+
+func DiffImageInfos(left *ImageInfo, right *ImageInfo) (uint64, error) {
+	return diffPictables(left.Data, right.Data)
+}
+
+func diffPictables(left Pictable, right Pictable) (uint64, error) {
+	if len(left) != len(right) {
+		return 0, ErrorDissimilarSubdivisions
+	}
+
+	subdivisions := len(left)
+
+	var xdiff uint64
+	for rX := 0; rX < subdivisions; rX++ {
+		for rY := 0; rY < subdivisions; rY++ {
+			aa := left[rX][rY]
+			bb := right[rX][rY]
+
+			xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
+		}
+	}
+
+	return xdiff, nil
+}
+
+func DiffImages(left image.Image, right image.Image, subdivisions uint) (uint64, error) {
+	lp, err := pictableFromImage(left, subdivisions)
+	if err != nil {
+		return 0, err
+	}
+
+	rp, err := pictableFromImage(right, subdivisions)
+	if err != nil {
+		return 0, err
+	}
+
+	return diffPictables(lp, rp)
+}
+
+func absdiff(a uint64, b uint64) uint64 {
+	return uint64(math.Abs(float64(a) - float64(b)))
 }
