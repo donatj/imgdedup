@@ -22,11 +22,10 @@ func newPictable(dx int, dy int) pictable {
 }
 
 type ImageInfo struct {
-	Data         pictable
-	Format       string
-	Bounds       image.Rectangle
-	Filesize     uint64
-	Subdivisions int
+	Data     pictable
+	Format   string
+	Bounds   image.Rectangle
+	Filesize uint64
 }
 
 func NewImageInfo(imgpath string, subdivisions int) (*ImageInfo, error) {
@@ -52,11 +51,10 @@ func NewImageInfo(imgpath string, subdivisions int) (*ImageInfo, error) {
 	}
 
 	imginfo := &ImageInfo{
-		Data:         pict,
-		Format:       ifmt,
-		Bounds:       img.Bounds(),
-		Filesize:     uint64(fi.Size()),
-		Subdivisions: subdivisions,
+		Data:     pict,
+		Format:   ifmt,
+		Bounds:   img.Bounds(),
+		Filesize: uint64(fi.Size()),
 	}
 
 	return imginfo, nil
@@ -100,14 +98,16 @@ func pictableFromImage(m image.Image, size int) (pictable, error) {
 var ErrorDissimilarSubdivisions = errors.New("diff: cannot compare dissimilar subdivisions")
 
 func Diff(left *ImageInfo, right *ImageInfo) (uint64, error) {
-	if left.Subdivisions != right.Subdivisions {
+	return diffPictables(left.Data, right.Data)
+}
+
+func diffPictables(left pictable, right pictable) (uint64, error) {
+	if len(left) != len(right) {
 		return 0, ErrorDissimilarSubdivisions
 	}
 
-	return diffPictables(left.Data, right.Data, left.Subdivisions), nil
-}
+	subdivisions := len(left)
 
-func diffPictables(left pictable, right pictable, subdivisions int) uint64 {
 	var xdiff uint64
 	for rX := 0; rX < subdivisions; rX++ {
 		for rY := 0; rY < subdivisions; rY++ {
@@ -118,7 +118,7 @@ func diffPictables(left pictable, right pictable, subdivisions int) uint64 {
 		}
 	}
 
-	return xdiff
+	return xdiff, nil
 }
 
 func DiffImages(left image.Image, right image.Image, subdivisions int) (uint64, error) {
@@ -132,7 +132,7 @@ func DiffImages(left image.Image, right image.Image, subdivisions int) (uint64, 
 		return 0, err
 	}
 
-	return diffPictables(lp, rp, subdivisions), nil
+	return diffPictables(lp, rp)
 }
 
 func absdiff(a uint64, b uint64) uint64 {
