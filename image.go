@@ -97,7 +97,7 @@ func pictableFromImage(m image.Image, size int) (pictable, error) {
 // ErrorDissimilarSubdivisions is returned on trying to compare ImageInfo's of different sizes
 var ErrorDissimilarSubdivisions = errors.New("diff: cannot compare dissimilar subdivisions")
 
-func Diff(left *ImageInfo, right *ImageInfo) (uint64, error) {
+func DiffImageInfos(left *ImageInfo, right *ImageInfo) (uint64, error) {
 	return diffPictables(left.Data, right.Data)
 }
 

@@ -25,7 +25,7 @@ func displayDiff(fileList []string, imgdata map[string]*imgdedup.ImageInfo) {
 					continue
 				}
 
-				xdiff, err := imgdedup.Diff(leftimg, rightimg)
+				xdiff, err := imgdedup.DiffImageInfos(leftimg, rightimg)
 				if err != nil {
 					log.Println(err)
 					continue
