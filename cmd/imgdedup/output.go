@@ -67,12 +67,6 @@ func displayDiff(diffs []ImgDiff) {
 		fmt.Println("")
 		fmt.Println("Diff: ", diff.Diff)
 
-		if diff.Diff > 0 || diff.Left.Filesize != diff.Right.Filesize {
-			if *difftool != "" {
-				diffTool(*difftool, diff.Left.Path, diff.Right.Path)
-			}
-		}
-
 		fmt.Println("- - - - - - - - - -")
 	}
 }

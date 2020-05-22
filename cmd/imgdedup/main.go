@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sync"
-	"time"
 
 	"github.com/cheggaaa/pb/v3"
 	"github.com/donatj/imgdedup"
@@ -139,11 +137,8 @@ func main() {
 
 	d := diff(fileList, imgdata)
 	displayDiff(d)
-}
 
-func diffTool(tool string, leftf string, rightf string) {
-	log.Println("Launching difftool")
-	cmd := exec.Command(tool, leftf, rightf)
-	cmd.Run()
-	time.Sleep(500 * time.Millisecond)
+	if *difftool != "" {
+		diffToolDiff(*difftool, d)
+	}
 }
