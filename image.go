@@ -116,16 +116,35 @@ func Diff(left *ImageInfo, right *ImageInfo) (uint64, error) {
 		return 0, ErrorDissimilarSubdivisions
 	}
 
+	return diffPictables(left.Data, right.Data, left.Subdivisions), nil
+}
+
+func diffPictables(left pictable, right pictable, subdivisions int) uint64 {
 	var xdiff uint64
-	for rX := 0; rX < left.Subdivisions; rX++ {
-		for rY := 0; rY < left.Subdivisions; rY++ {
-			aa := left.Data[rX][rY]
-			bb := right.Data[rX][rY]
+	for rX := 0; rX < subdivisions; rX++ {
+		for rY := 0; rY < subdivisions; rY++ {
+			aa := left[rX][rY]
+			bb := right[rX][rY]
 
 			xdiff += absdiff(absdiff(absdiff(aa[0], bb[0]), absdiff(aa[1], bb[1])), absdiff(aa[2], bb[2]))
 		}
 	}
-	return xdiff, nil
+
+	return xdiff
+}
+
+func DiffImages(left image.Image, right image.Image, subdivisions int) (uint64, error) {
+	lp, err := pictableFromImage(left, subdivisions)
+	if err != nil {
+		return 0, err
+	}
+
+	rp, err := pictableFromImage(right, subdivisions)
+	if err != nil {
+		return 0, err
+	}
+
+	return diffPictables(lp, rp, subdivisions), nil
 }
 
 func absdiff(a uint64, b uint64) uint64 {
