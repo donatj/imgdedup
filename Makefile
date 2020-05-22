@@ -4,7 +4,7 @@ test:
 	go test ./...
 
 install:
-	go install
+	go install ./cmd/imgdedup
 
 .PHONY: clean
 clean:
@@ -18,10 +18,10 @@ release: clean darwin64 linux64 windows64
 	cd release/windows64 && zip -9 ../windows64.zip imgdedup.exe
 
 darwin64:
-	env GOOS=darwin GOARCH=amd64 go build -o release/darwin64/imgdedup .
+	env GOOS=darwin GOARCH=amd64 go build -o release/darwin64/imgdedup ./cmd/imgdedup 
 
 linux64:
-	env GOOS=linux GOARCH=amd64 go build -o release/linux64/imgdedup .
+	env GOOS=linux GOARCH=amd64 go build -o release/linux64/imgdedup ./cmd/imgdedup
 
 windows64:
-	env GOOS=windows GOARCH=amd64 go build -o release/windows64/imgdedup.exe .
+	env GOOS=windows GOARCH=amd64 go build -o release/windows64/imgdedup.exe ./cmd/imgdedup
