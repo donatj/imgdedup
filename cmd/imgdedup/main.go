@@ -16,6 +16,18 @@ import (
 	"github.com/donatj/imgdedup/cache"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/prologic/bitcask"
+
+	// Image format self registers
+
+	// Standard Image Formats
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+
+	// Extended Image Formats
+	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 )
 
 var (
