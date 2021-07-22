@@ -13,7 +13,7 @@ import (
 	"github.com/donatj/imgdedup"
 	"github.com/donatj/imgdedup/cache"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/prologic/bitcask"
+	"git.mills.io/prologic/bitcask"
 
 	// Image format self registers
 

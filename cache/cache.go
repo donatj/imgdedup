@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/donatj/imgdedup"
-	"github.com/prologic/bitcask"
+	"git.mills.io/prologic/bitcask"
 )
 
 type Cache struct {
