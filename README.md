@@ -6,10 +6,19 @@ Image De-duplicator
 
 Simple image de-duplication
 
-	usage: imgdedup [options] [<directories>/files]
-	  -diff="": Command to pass dupe images to eg: cmd $left $right
-	  -subdivisions=10: Slices per axis
-	  -tolerance=100: Color delta tolerance, higher = more tolerant
+```
+Usage of imgdedup [options] [<directories>/files]:
+  -cache-dir string
+         (default "$HOME/.cache/imgdedup/cacheDb")
+  -diff string
+        Command to pass dupe images to eg: cmd $left $right
+  -format string
+        Output format - options: default json (default "default")
+  -subdivisions uint
+        Slices per axis (default 10)
+  -tolerance uint
+        Color delta tolerance, higher = more tolerant (default 100)
+```
 
 ## Features
 
