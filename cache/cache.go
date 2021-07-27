@@ -80,7 +80,7 @@ func GetCacheName(imgpath string, subdivisions uint) string {
 		return ""
 	}
 
-	str := imgpath + "|" + string(subdivisions) + "|" + string(fi.Size()) + string(fi.ModTime().Unix())
+	str := imgpath + "|" + fmt.Sprint(subdivisions) + "|" + fmt.Sprint(fi.Size()) + "|" + fmt.Sprint(fi.ModTime().Unix())
 
 	h := md5.New()
 	io.WriteString(h, str)
