@@ -22,4 +22,3 @@ jobs:
       - name: Test
         run: |
           go test ./...
-          ./test/test.sh
