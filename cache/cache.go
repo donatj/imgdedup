@@ -9,8 +9,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/donatj/imgdedup"
 	"git.mills.io/prologic/bitcask"
+	"github.com/donatj/imgdedup"
 )
 
 type Cache struct {
@@ -29,7 +29,7 @@ func (c *Cache) LoadCache(cachename string) *imgdedup.ImageInfo {
 	c.Lock()
 	defer c.Unlock()
 
-	b, err := c.db.Get(cachename)
+	b, err := c.db.Get([]byte(cachename))
 	if err == bitcask.ErrKeyNotFound {
 		return nil
 	} else if err != nil {
@@ -60,7 +60,7 @@ func (c *Cache) StoreCache(cachename string, imginfo *imgdedup.ImageInfo) error 
 		return err
 	}
 
-	err = c.db.Put(cachename, data.Bytes())
+	err = c.db.Put([]byte(cachename), data.Bytes())
 	if err != nil {
 		return err
 	}
