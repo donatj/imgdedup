@@ -3,6 +3,7 @@ Image De-duplicator
 
 [![Go Report Card](https://goreportcard.com/badge/donatj/imgdedup)](https://goreportcard.com/report/donatj/imgdedup)
 [![Build Status](https://travis-ci.org/donatj/imgdedup.svg?branch=master)](https://travis-ci.org/donatj/imgdedup)
+[![Go Reference](https://pkg.go.dev/badge/github.com/donatj/imgdedup.svg)](https://pkg.go.dev/github.com/donatj/imgdedup)
 
 Simple image de-duplication
 
