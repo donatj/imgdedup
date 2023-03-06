@@ -9,6 +9,5 @@ require (
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	golang.org/x/exp v0.0.0-20210722180016-6781d3edade3 // indirect
-	golang.org/x/image v0.5.0
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/image v0.6.0
 )
