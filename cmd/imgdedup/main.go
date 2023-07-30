@@ -13,7 +13,6 @@ import (
 	"git.mills.io/prologic/bitcask"
 	"github.com/donatj/imgdedup"
 	"github.com/donatj/imgdedup/cache"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/schollz/progressbar/v3"
 
 	// Image format self registers
@@ -42,12 +41,17 @@ var (
 )
 
 func init() {
-	h, err := homedir.Dir()
+	cd, err := os.UserCacheDir()
 	if err != nil {
-		log.Fatal(err)
+		h, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		cd = filepath.Join(h, ".cache")
 	}
 
-	cacheDir = flag.String("cache-dir", filepath.Join(h, ".cache", "imgdedup", "cacheDb2"), "")
+	cacheDir = flag.String("cache-dir", filepath.Join(cd, "imgdedup", "cacheDb2"), "")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s [options] [<directories>/files]:\n", os.Args[0])
 		flag.PrintDefaults()

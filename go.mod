@@ -7,7 +7,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/schollz/progressbar/v3 v3.13.1
 	golang.org/x/exp v0.0.0-20210722180016-6781d3edade3 // indirect
