@@ -31,8 +31,9 @@ import (
 var (
 	subdivisions = flag.Uint("subdivisions", 10, "Slices per axis")
 	tolerance    = flag.Uint64("tolerance", 100, "Color delta tolerance, higher = more tolerant")
-	format       = flag.String("format", "default", "Output format - options: default json")
+	format       = flag.String("format", "default", "Output format - available options: default classic json")
 	difftool     = flag.String("diff", "", "Command to pass dupe images to eg: cmd $left $right")
+	noprogress   = flag.Bool("no-progress", false, "Disable progress bar")
 )
 
 var (
@@ -84,12 +85,17 @@ func main() {
 		[]string{".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff"})
 
 	// bar := progressbar.Default(int64(len(fileList)))
-	bar := progressbar.NewOptions(len(fileList),
-		progressbar.OptionSetWriter(os.Stderr),
-		progressbar.OptionThrottle(100*time.Millisecond),
-		progressbar.OptionClearOnFinish(),
-		progressbar.OptionShowCount(),
-	)
+	var bar *progressbar.ProgressBar
+	if *noprogress {
+		bar = progressbar.DefaultSilent(int64(len(fileList)))
+	} else {
+		bar = progressbar.NewOptions(len(fileList),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionThrottle(100*time.Millisecond),
+			progressbar.OptionClearOnFinish(),
+			progressbar.OptionShowCount(),
+		)
+	}
 
 	fileChan := make(chan string)
 
@@ -152,7 +158,9 @@ func main() {
 
 	switch *format {
 	case "default":
-		displayDiff(d)
+		displayHumanDiff(d)
+	case "classic":
+		displayClassicDiff(d)
 	case "json":
 		displayDiffJSON(d)
 	default:

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"sort"
+	"text/tabwriter"
 
 	"github.com/donatj/imgdedup"
 	"github.com/dustin/go-humanize"
@@ -63,7 +65,25 @@ func diff(imgdata map[string]*imgdedup.ImageInfo, tolerance uint64) []ImgDiff {
 	return out
 }
 
-func displayDiff(diffs []ImgDiff) {
+type DiffDisplayer func([]ImgDiff)
+
+func displayHumanDiff(diffs []ImgDiff) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	for i, diff := range diffs {
+		fmt.Fprintln(w, "Diff\t", diff.Diff)
+		fmt.Fprintf(w, "\t\t%s\t%d×%d\t%s\n", diff.Left.Path, diff.Left.Bounds.Dx(), diff.Left.Bounds.Dy(), humanize.Bytes(diff.Left.Filesize))
+		fmt.Fprintf(w, "\t\t%s\t%d×%d\t%s\n", diff.Right.Path, diff.Right.Bounds.Dx(), diff.Right.Bounds.Dy(), humanize.Bytes(diff.Right.Filesize))
+
+		if i < len(diffs)-1 {
+			fmt.Fprintln(w)
+		}
+	}
+
+	w.Flush()
+
+}
+
+func displayClassicDiff(diffs []ImgDiff) {
 	for _, diff := range diffs {
 
 		fmt.Println(diff.Left.Path)
