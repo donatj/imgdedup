@@ -9,11 +9,11 @@ import (
 	"runtime"
 	"sync"
 
+	"git.mills.io/prologic/bitcask"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/donatj/imgdedup"
 	"github.com/donatj/imgdedup/cache"
 	homedir "github.com/mitchellh/go-homedir"
-	"git.mills.io/prologic/bitcask"
 
 	// Image format self registers
 
@@ -46,7 +46,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	cacheDir = flag.String("cache-dir", filepath.Join(h, ".cache", "imgdedup", "cacheDb"), "")
+	cacheDir = flag.String("cache-dir", filepath.Join(h, ".cache", "imgdedup", "cacheDb2"), "")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s [options] [<directories>/files]:\n", os.Args[0])
 		flag.PrintDefaults()
