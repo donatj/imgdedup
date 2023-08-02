@@ -39,4 +39,4 @@ See: [Releases](https://github.com/donatj/imgdedup/releases).
 
 ### Compile
 
-	$ go get -u -v github.com/donatj/imgdedup
+	$ go install github.com/donatj/imgdedup@latest
