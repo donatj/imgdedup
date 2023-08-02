@@ -10,11 +10,13 @@ Simple image de-duplication
 ```
 Usage of imgdedup [options] [<directories>/files]:
   -cache-dir string
-         (default "$HOME/.cache/imgdedup/cacheDb")
+         (default "<varies by os>")
   -diff string
         Command to pass dupe images to eg: cmd $left $right
   -format string
-        Output format - options: default json (default "default")
+        Output format - available options: default classic json (default "default")
+  -no-progress
+        Disable progress bar
   -subdivisions uint
         Slices per axis (default 10)
   -tolerance uint
