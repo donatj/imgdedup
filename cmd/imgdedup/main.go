@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 	"runtime"
 	"sync"
+	"time"
 
 	"git.mills.io/prologic/bitcask"
-	"github.com/cheggaaa/pb/v3"
 	"github.com/donatj/imgdedup"
 	"github.com/donatj/imgdedup/cache"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/schollz/progressbar/v3"
 
 	// Image format self registers
 
@@ -78,8 +79,13 @@ func main() {
 	fileList = filterFiles(fileList,
 		[]string{".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff"})
 
-	bar := pb.StartNew(len(fileList))
-	bar.SetWriter(os.Stderr)
+	// bar := progressbar.Default(int64(len(fileList)))
+	bar := progressbar.NewOptions(len(fileList),
+		progressbar.OptionSetWriter(os.Stderr),
+		progressbar.OptionThrottle(100*time.Millisecond),
+		progressbar.OptionClearOnFinish(),
+		progressbar.OptionShowCount(),
+	)
 
 	fileChan := make(chan string)
 
@@ -123,7 +129,7 @@ func main() {
 				imgdata[imgpath] = imginfo
 				imgmut.Unlock()
 
-				bar.Increment()
+				bar.Add(1)
 			}
 
 			wg.Done()
