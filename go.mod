@@ -6,7 +6,7 @@ require (
 	git.mills.io/prologic/bitcask v1.0.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/schollz/progressbar/v3 v3.13.1
-	golang.org/x/image v0.10.0
+	golang.org/x/image v0.11.0
 )
 
 require (
