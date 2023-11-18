@@ -5,7 +5,7 @@ go 1.21
 require (
 	git.mills.io/prologic/bitcask v1.0.2
 	github.com/dustin/go-humanize v1.0.1
-	github.com/schollz/progressbar/v3 v3.14.0
+	github.com/schollz/progressbar/v3 v3.14.1
 	golang.org/x/image v0.13.0
 )
 
@@ -19,5 +19,5 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	golang.org/x/exp v0.0.0-20210722180016-6781d3edade3 // indirect
 	golang.org/x/sys v0.14.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
+	golang.org/x/term v0.14.0 // indirect
 )
