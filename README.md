@@ -31,7 +31,7 @@ Detects duplications despite changes in
 - quality
 - aspect ratio
 
-Flags to compare images in your prefered difftool
+Flags to compare images in your preferred difftool
 
 ## Download
 
