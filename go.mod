@@ -1,12 +1,13 @@
 module github.com/donatj/imgdedup
 
 go 1.21
+toolchain go1.23.7
 
 require (
 	git.mills.io/prologic/bitcask v1.0.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/schollz/progressbar/v3 v3.15.0
-	golang.org/x/image v0.23.0
+	golang.org/x/image v0.25.0
 )
 
 require (
