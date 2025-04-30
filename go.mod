@@ -1,6 +1,8 @@
 module github.com/donatj/imgdedup
 
-go 1.21
+go 1.24
+
+toolchain go1.24.1
 
 require (
 	git.mills.io/prologic/bitcask v1.0.2
