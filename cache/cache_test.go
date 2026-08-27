@@ -25,7 +25,7 @@ func TestCacheStoresAndLoadsImageInfo(t *testing.T) {
 		Data:     imgdedup.Pictable{{{1, 2, 3}}},
 		Format:   "png",
 		Bounds:   image.Rect(1, 2, 3, 4),
-		Path:     "/tmp/image.png",
+		Path:     "test/image.png",
 		Filesize: 123,
 	}
 
