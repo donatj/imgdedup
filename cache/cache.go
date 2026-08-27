@@ -9,8 +9,8 @@ import (
 	"os"
 	"sync"
 
-	"git.mills.io/prologic/bitcask"
 	"github.com/donatj/imgdedup"
+	"go.mills.io/bitcask/v2"
 )
 
 type Cache struct {
