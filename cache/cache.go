@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -30,7 +31,7 @@ func (c *Cache) LoadCache(cachename string) *imgdedup.ImageInfo {
 	defer c.Unlock()
 
 	b, err := c.db.Get([]byte(cachename))
-	if err == bitcask.ErrKeyNotFound {
+	if errors.Is(err, bitcask.ErrKeyNotFound) {
 		return nil
 	} else if err != nil {
 		panic(err)
