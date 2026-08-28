@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"git.mills.io/prologic/bitcask"
 	"github.com/donatj/imgdedup"
 	"github.com/donatj/imgdedup/cache"
 	"github.com/schollz/progressbar/v3"
+	"go.mills.io/bitcask/v2"
 
 	// Image format self registers
 
