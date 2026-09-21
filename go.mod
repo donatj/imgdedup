@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/schollz/progressbar/v3 v3.19.1
-	go.mills.io/bitcask/v2 v2.1.5
+	go.mills.io/bitcask/v2 v2.2.0
 	golang.org/x/image v0.46.0
 )
 
